@@ -97,6 +97,12 @@
       font-size: 12.5px;
       margin-bottom: 14px;
     }
+    .auth-domain {
+      margin-top: 10px;
+      font-size: 11px;
+      color: var(--text-soft);
+      word-break: break-all;
+    }
 
     .auth-btn {
       width: 100%;
@@ -418,6 +424,7 @@
       gap: 8px;
       margin-top: 8px;
     }
+
     .theme-btn {
       border: 1px solid var(--line);
       border-radius: 10px;
@@ -464,7 +471,7 @@
       <div class="auth-sub">Google / X(Twitter) でログインして記録を同期</div>
       <button class="auth-btn google" onclick="loginWithGoogle()">Google でログイン</button>
       <button class="auth-btn twitter" onclick="loginWithTwitter()">X(Twitter) でログイン</button>
-      <div class="meta" style="margin-top:10px;">※ Firebase設定後に有効化されます</div>
+      <div class="auth-domain" id="authDomainHint"></div>
     </div>
   </div>
 
@@ -679,6 +686,19 @@
       return firebaseConfig.apiKey && firebaseConfig.projectId;
     }
 
+    function showAuthSetupHelp(providerName) {
+      const host = window.location.hostname;
+      alert(
+        `${providerName}ログイン失敗: このドメインがFirebase Authで未許可です。\n\n` +
+        `追加するドメイン: ${host}\n\n` +
+        `手順:\n` +
+        `1) Firebase Console → Authentication → Settings\n` +
+        `2) Authorized domains → Add domain\n` +
+        `3) ${host} を追加して保存\n` +
+        `4) ページを再読み込みして再ログイン`
+      );
+    }
+
     function saveLocalData() {
       localStorage.setItem('anulisCharts', JSON.stringify(charts));
       localStorage.setItem('anulisTheme', localStorage.getItem('anulisTheme') || 'blue');
@@ -749,6 +769,10 @@
       try {
         await auth.signInWithPopup(provider);
       } catch (e) {
+        if (e.code === 'auth/unauthorized-domain') {
+          showAuthSetupHelp('Google');
+          return;
+        }
         if (
           e.code === 'auth/popup-blocked' ||
           e.code === 'auth/popup-closed-by-user' ||
@@ -767,6 +791,10 @@
       try {
         await auth.signInWithPopup(provider);
       } catch (e) {
+        if (e.code === 'auth/unauthorized-domain') {
+          showAuthSetupHelp('X(Twitter)');
+          return;
+        }
         if (
           e.code === 'auth/popup-blocked' ||
           e.code === 'auth/popup-closed-by-user' ||
@@ -885,6 +913,7 @@
         drawMiniGraph(item.querySelector('.mini-canvas'), chart);
       });
     }
+
     function drawMiniGraph(canvas, chart) {
       if (!canvas) return;
       const { history } = computeProgress(chart);
@@ -1225,6 +1254,9 @@
       const { history } = computeProgress(currentChart);
       drawGraph(currentChart, history);
     });
+
+    document.getElementById('authDomainHint').textContent =
+      `現在のドメイン: ${window.location.hostname}（Firebase Authの許可ドメインに追加が必要）`;
 
     renderThemeButtons();
     renderList();
