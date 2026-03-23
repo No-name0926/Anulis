@@ -1,1495 +1,828 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anulis - 学習ペースメーカー</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-            background: #000000;
-            color: #ffffff;
-            min-height: 100vh;
-            overflow-x: hidden;
-            --accent: #e8ecff;
-            --panel: rgba(7, 12, 28, 0.92);
-            --line: rgba(255,255,255,0.72);
-            --line-soft: rgba(255,255,255,0.45);
-        }
-
-        body[data-theme="midnight"] {
-            --accent: #e8ecff;
-            --panel: rgba(7, 12, 28, 0.92);
-            --line: rgba(255,255,255,0.76);
-            --line-soft: rgba(255,255,255,0.45);
-        }
-
-        body[data-theme="forest"] {
-            --accent: #d8ffe8;
-            --panel: rgba(8, 24, 18, 0.9);
-            --line: rgba(220,255,234,0.78);
-            --line-soft: rgba(220,255,234,0.45);
-        }
-
-        body[data-theme="mono"] {
-            --accent: #f2f2f2;
-            --panel: rgba(18, 18, 18, 0.93);
-            --line: rgba(255,255,255,0.82);
-            --line-soft: rgba(255,255,255,0.5);
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 44px 16px 10px 16px;
-            background: transparent;
-            position: relative;
-            z-index: 100;
-        }
-
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .menu-btn, .grid-btn, .add-btn {
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px);
-            border: none;
-            color: white;
-            font-size: 18px;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 10px;
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.2s ease, background 0.2s ease;
-        }
-
-        .menu-btn:active, .grid-btn:active, .add-btn:active {
-            transform: scale(0.94);
-        }
-
-        .logo {
-            font-size: 18px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
-
-        /* Empty State */
-        .empty-state {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: calc(100vh - 140px);
-            padding: 20px;
-        }
-
-        .fox-icon {
-            width: 120px;
-            height: 120px;
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 30px;
-        }
-
-        .fox-icon svg {
-            width: 70px;
-            height: 70px;
-            fill: white;
-        }
-
-        .empty-message {
-            font-size: 15px;
-            color: #6b7280;
-            margin-bottom: 25px;
-        }
-
-        .add-chart-btn {
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-            color: white;
-            border: none;
-            padding: 14px 35px;
-            border-radius: 25px;
-            font-size: 15px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: transform 0.2s;
-        }
-
-        .add-chart-btn:active {
-            transform: scale(0.95);
-        }
-
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.95);
-            z-index: 1000;
-            animation: fadeIn 0.3s;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .modal-content {
-            background: #000000;
-            margin: 0;
-            height: 100%;
-            overflow-y: auto;
-            animation: slideUp 0.3s;
-        }
-
-        @keyframes slideUp {
-            from { transform: translateY(100%); }
-            to { transform: translateY(0); }
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 50px 20px 15px 20px;
-            background: transparent;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            backdrop-filter: blur(10px);
-        }
-
-        .back-btn, .range-toggle {
-            background: rgba(255,255,255,0.1);
-            border: none;
-            color: white;
-            font-size: 16px;
-            cursor: pointer;
-            padding: 8px 15px;
-            border-radius: 8px;
-        }
-
-        .modal-title {
-            font-size: 17px;
-            font-weight: 600;
-        }
-
-        .form-section {
-            padding: 20px;
-        }
-
-        .form-group {
-            margin-bottom: 25px;
-        }
-
-        .form-label {
-            display: block;
-            font-size: 13px;
-            color: #9ca3af;
-            margin-bottom: 10px;
-            font-weight: 500;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 15px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            color: white;
-            font-size: 16px;
-        }
-
-        .form-input::placeholder {
-            color: #4b5563;
-        }
-
-        .unit-selector {
-            width: 100%;
-            padding: 15px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            color: white;
-            font-size: 16px;
-            cursor: pointer;
-            text-align: left;
-        }
-
-        .unit-dropdown {
-            display: none;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            margin-top: 10px;
-            overflow: hidden;
-        }
-
-        .unit-dropdown.active {
-            display: block;
-        }
-
-        .unit-option {
-            padding: 15px 20px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .unit-option:hover {
-            background: rgba(255,255,255,0.1);
-        }
-
-        .image-upload {
-            width: 100%;
-            padding: 40px;
-            background: rgba(255,255,255,0.05);
-            border: 2px dashed rgba(255,255,255,0.2);
-            border-radius: 12px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .image-upload:hover {
-            border-color: rgba(255,255,255,0.3);
-            background: rgba(255,255,255,0.08);
-        }
-
-        .image-preview {
-            max-width: 100%;
-            max-height: 200px;
-            border-radius: 10px;
-            margin-top: 10px;
-        }
-
-        .next-btn {
-            width: calc(100% - 40px);
-            margin: 20px;
-            padding: 16px;
-            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-            color: white;
-            border: none;
-            border-radius: 25px;
-            font-size: 16px;
-            cursor: pointer;
-            font-weight: 600;
-            position: sticky;
-            bottom: 20px;
-        }
-
-        /* Chart View */
-        .chart-view {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: #000000;
-            z-index: 200;
-            overflow-x: hidden;
-            animation: fadeIn 0.25s ease;
-        }
-
-        .chart-view-inner {
-            height: 100vh;
-            overflow-y: auto;
-            overflow-x: hidden;
-            position: relative;
-            padding-bottom: 50px;
-            scroll-behavior: smooth;
-        }
-
-        .chart-header {
-            padding: 44px 16px 10px 16px;
-            background: transparent;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 10;
-            transition: opacity 0.2s ease;
-        }
-
-        .chart-title {
-            font-size: 15px;
-            font-weight: 600;
-            flex: 1;
-            text-align: center;
-            padding: 0 20px;
-        }
-
-        .share-btn, .menu-dots {
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(10px);
-            border: none;
-            color: white;
-            font-size: 17px;
-            cursor: pointer;
-            padding: 10px;
-            border-radius: 10px;
-            width: 34px;
-            height: 34px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .chart-info {
-            padding: 80px 20px 10px 20px;
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 9;
-            color: white;
-            text-shadow: 0 2px 8px rgba(0,0,0,0.5);
-        }
-
-        .info-text {
-            font-size: 11px;
-            color: rgba(255,255,255,0.9);
-            line-height: 1.5;
-        }
-
-        .chart-container {
-            position: relative;
-            width: 100%;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        .chart-background {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: center;
-            opacity: 0.6;
-        }
-
-        .chart-canvas-wrapper {
-            position: relative;
-            z-index: 1;
-            width: 90%;
-            max-width: 500px;
-            aspect-ratio: 1;
-        }
-
-        canvas {
-            width: 100% !important;
-            height: 100% !important;
-        }
-
-        .daily-target {
-            position: absolute;
-            bottom: 170px;
-            left: 0;
-            right: 0;
-            text-align: center;
-            padding: 20px;
-            z-index: 10;
-            color: white;
-            text-shadow: 0 2px 8px rgba(0,0,0,0.5);
-        }
-
-        .target-label {
-            font-size: 11px;
-            color: rgba(255,255,255,0.9);
-            margin-bottom: 8px;
-        }
-
-        .target-value {
-            font-size: 30px;
-            font-weight: 700;
-            display: inline;
-        }
-
-        .target-unit {
-            font-size: 16px;
-            color: rgba(255,255,255,0.9);
-            margin-left: 5px;
-        }
-
-        .scroll-hint {
-            position: absolute;
-            bottom: 30px;
-            left: 0;
-            right: 0;
-            text-align: center;
-            color: rgba(255,255,255,0.6);
-            font-size: 11px;
-            z-index: 10;
-            animation: bounceHint 1.8s infinite ease-in-out;
-        }
-
-        @keyframes bounceHint {
-            0%, 100% { transform: translateY(0); opacity: .7; }
-            50% { transform: translateY(4px); opacity: 1; }
-        }
-
-        .record-section {
-            position: relative;
-            z-index: 5;
-            margin: 0 14px 110px 14px;
-            border-radius: 14px;
-            background: var(--panel);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(16px);
-            padding: 14px;
-            color: #d9deea;
-            animation: slideUp 0.35s ease;
-        }
-
-        .calendar-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 12px;
-        }
-
-        .calendar-month {
-            font-size: 28px;
-            font-weight: 600;
-            color: #f2f5ff;
-            letter-spacing: 0.02em;
-        }
-
-        .calendar-nav {
-            border: none;
-            background: transparent;
-            color: #f2f5ff;
-            font-size: 24px;
-            line-height: 1;
-            cursor: pointer;
-            padding: 2px 8px;
-        }
-
-        .weekday-row,
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, minmax(0, 1fr));
-            text-align: center;
-        }
-
-        .weekday-row {
-            color: #8d95a9;
-            font-size: 11px;
-            margin-bottom: 3px;
-        }
-
-        .weekday-cell,
-        .day-cell {
-            padding: 4px 0;
-        }
-
-        .day-cell {
-            border: none;
-            background: transparent;
-            color: #d2d7e4;
-            font-size: 16px;
-            font-weight: 400;
-            border-radius: 50%;
-            width: min(34px, 7.5vw);
-            height: min(34px, 7.5vw);
-            margin: 2px auto;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease;
-        }
-
-        .day-cell:active {
-            transform: scale(0.9);
-        }
-
-        .day-cell.other-month {
-            color: #656f86;
-        }
-
-        .day-cell.selected {
-            background: #7689f0;
-            color: #f6f8ff;
-            box-shadow: 0 0 0 2px rgba(118, 137, 240, 0.2);
-        }
-
-        .record-row {
-            margin-top: 14px;
-            border-top: 1px solid rgba(191, 202, 235, 0.28);
-            border-bottom: 1px solid rgba(191, 202, 235, 0.28);
-            padding: 10px 0;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-        }
-
-        .record-label {
-            font-size: 14px;
-            color: #dce2f1;
-        }
-
-        .record-input-wrap {
-            display: flex;
-            align-items: baseline;
-            gap: 8px;
-        }
-
-        .record-input {
-            width: 72px;
-            text-align: right;
-            border: none;
-            background: transparent;
-            color: #f5f7ff;
-            font-size: 24px;
-            font-weight: 500;
-            outline: none;
-        }
-
-        .record-input-unit {
-            color: #cfd5e4;
-            font-size: 14px;
-        }
-
-        .memo-input {
-            width: 100%;
-            margin-top: 14px;
-            min-height: 40px;
-            border: none;
-            border-bottom: 1px solid rgba(191, 202, 235, 0.28);
-            background: transparent;
-            color: #e6eaf5;
-            font-size: 13px;
-            padding: 6px 0 8px;
-            resize: vertical;
-            outline: none;
-        }
-
-        .memo-input::placeholder {
-            color: #7c8498;
-        }
-
-        .save-record-btn {
-            width: 100%;
-            margin-top: 14px;
-            border: none;
-            border-radius: 999px;
-            background: rgba(175, 182, 198, 0.22);
-            color: #ced4e3;
-            font-size: 16px;
-            font-weight: 600;
-            padding: 10px 0;
-            cursor: pointer;
-            transition: transform 0.2s ease, background 0.2s ease;
-        }
-
-        .save-record-btn:active {
-            transform: scale(0.98);
-            background: rgba(175, 182, 198, 0.35);
-        }
-
-        .custom-unit-input {
-            width: 100%;
-            margin-top: 10px;
-            padding: 12px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 10px;
-            color: white;
-            font-size: 14px;
-            display: none;
-        }
-
-        .custom-unit-input.active {
-            display: block;
-        }
-
-        .side-menu {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 1200;
-            display: none;
-        }
-
-        .side-menu.active {
-            display: block;
-        }
-
-        .side-menu-panel {
-            width: min(82vw, 320px);
-            height: 100%;
-            background: #0b1020;
-            border-right: 1px solid rgba(255,255,255,0.12);
-            padding: 24px 16px;
-            transform: translateX(-100%);
-            transition: transform 0.25s ease;
-        }
-
-        .side-menu.active .side-menu-panel {
-            transform: translateX(0);
-        }
-
-        .menu-title {
-            font-size: 14px;
-            letter-spacing: 0.08em;
-            color: #cfd5e8;
-            margin-bottom: 12px;
-        }
-
-        .theme-buttons {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 8px;
-            margin-bottom: 14px;
-        }
-
-        .theme-btn {
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 10px;
-            padding: 10px 8px;
-            font-size: 12px;
-            color: #eef2ff;
-            background: rgba(255,255,255,0.04);
-            cursor: pointer;
-        }
-
-        .theme-btn.active {
-            border-color: rgba(255,255,255,0.7);
-            background: rgba(255,255,255,0.14);
-        }
-
-        /* Bottom Navigation */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(0,0,0,0.9);
-            backdrop-filter: blur(20px);
-            display: flex;
-            justify-content: space-around;
-            padding: 10px 0 30px 0;
-            border-top: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .nav-btn {
-            background: none;
-            border: none;
-            color: #6b7280;
-            font-size: 24px;
-            cursor: pointer;
-            padding: 10px 20px;
-            transition: color 0.2s;
-            border-radius: 12px;
-        }
-
-        .nav-btn.active {
-            color: white;
-            background: rgba(255,255,255,0.1);
-        }
-
-        /* Chart List */
-        .chart-list {
-            display: none;
-            padding: 20px;
-            padding-bottom: 100px;
-        }
-
-        .chart-card {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 15px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .chart-card:active {
-            transform: scale(0.98);
-            background: rgba(255,255,255,0.08);
-        }
-
-        .card-title {
-            font-size: 17px;
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-
-        .card-info {
-            font-size: 13px;
-            color: #9ca3af;
-            line-height: 1.5;
-        }
-
-        .card-progress {
-            margin-top: 15px;
-            height: 4px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 2px;
-            overflow: hidden;
-        }
-
-        .card-progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #10b981 0%, #059669 100%);
-            transition: width 0.3s;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anulis</title>
+  <style>
+    :root {
+      --bg: #eef4ff;
+      --bg-deep: #dfeaff;
+      --surface: rgba(255, 255, 255, 0.84);
+      --surface-strong: rgba(255, 255, 255, 0.95);
+      --line: #c9daf9;
+      --text: #284578;
+      --text-soft: #6f89b4;
+      --accent: #6f9dff;
+      --accent-deep: #4e7ff4;
+      --shadow: 0 14px 30px rgba(73, 109, 182, 0.16);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Inter", "Hiragino Sans", "Noto Sans JP", -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      background:
+        radial-gradient(1200px 600px at 10% -10%, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0) 50%),
+        radial-gradient(700px 500px at 95% 30%, rgba(168,194,255,0.45) 0%, rgba(168,194,255,0) 60%),
+        linear-gradient(180deg, #f6faff 0%, var(--bg) 45%, var(--bg-deep) 100%);
+    }
+
+    .orb {
+      position: fixed;
+      border-radius: 999px;
+      filter: blur(22px);
+      pointer-events: none;
+      z-index: -1;
+      opacity: .65;
+      animation: float 10s ease-in-out infinite;
+    }
+
+    .orb.a {
+      width: 180px;
+      height: 180px;
+      left: -50px;
+      top: 70px;
+      background: rgba(157, 188, 255, 0.6);
+    }
+
+    .orb.b {
+      width: 220px;
+      height: 220px;
+      right: -80px;
+      bottom: 80px;
+      background: rgba(126, 163, 255, 0.45);
+      animation-delay: -3s;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(12px); }
+    }
+
+    .app {
+      width: min(100%, 560px);
+      margin: 0 auto;
+      padding: 16px 14px 30px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .brand {
+      font-size: 19px;
+      font-weight: 620;
+      letter-spacing: .03em;
+      color: #375b97;
+    }
+
+    .glass {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+    }
+
+    .icon-btn {
+      border: 1px solid var(--line);
+      background: var(--surface-strong);
+      color: #5579b7;
+      border-radius: 12px;
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 520;
+      cursor: pointer;
+      transition: transform .18s ease, box-shadow .2s ease;
+      box-shadow: 0 6px 16px rgba(88, 121, 185, 0.15);
+    }
+
+    .icon-btn:active { transform: scale(0.96); }
+
+    .list { display: grid; gap: 10px; }
+
+    .card {
+      padding: 13px;
+      border-radius: 16px;
+      animation: fadeInUp .28s ease both;
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .chart-item { cursor: pointer; transition: transform .18s ease, box-shadow .18s ease; }
+    .chart-item:active { transform: scale(.985); }
+
+    .title { font-size: 14px; font-weight: 620; color: #33558f; margin-bottom: 5px; }
+    .meta { font-size: 11.5px; color: var(--text-soft); line-height: 1.5; }
+
+    .progress-track {
+      margin-top: 8px;
+      width: 100%;
+      height: 4px;
+      border-radius: 999px;
+      background: #dce8ff;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #90b5ff 0%, #6f9dff 100%);
+      transition: width .35s ease;
+    }
+
+    .empty { text-align: center; padding: 42px 14px; color: #7088b1; font-size: 12.5px; }
+
+    .primary {
+      margin-top: 12px;
+      width: 100%;
+      border: none;
+      border-radius: 13px;
+      background: linear-gradient(135deg, #8bb0ff 0%, #6b99ff 100%);
+      color: #fff;
+      padding: 11px 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 9px 20px rgba(84, 125, 208, 0.3);
+      transition: transform .2s ease;
+    }
+
+    .primary:active { transform: translateY(1px); }
+
+    .chart-screen { display: none; }
+
+    .chart-head {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .chart-name {
+      text-align: center;
+      font-size: 15px;
+      font-weight: 620;
+      color: #345890;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .graph-wrap { padding: 12px 10px 8px; margin-bottom: 10px; }
+    .graph-label { font-size: 11px; color: #6885b5; margin-bottom: 6px; }
+    canvas { width: 100% !important; height: 250px !important; display: block; }
+
+    .summary {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .summary .card { padding: 11px; }
+    .kpi-label { font-size: 10.5px; color: #7992bc; margin-bottom: 4px; }
+    .kpi-value { font-size: 23px; font-weight: 700; color: #2d538f; line-height: 1; }
+    .kpi-sub { font-size: 10.5px; color: #7a93bb; margin-top: 4px; }
+
+    .calendar-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 9px;
+    }
+
+    .month-label { font-size: 14px; font-weight: 620; color: #3a609b; }
+
+    .week-row,
+    .day-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      text-align: center;
+    }
+
+    .week-row {
+      font-size: 10.5px;
+      color: #92a7cb;
+      margin-bottom: 5px;
+    }
+
+    .day-btn {
+      border: none;
+      background: transparent;
+      color: #5f7faf;
+      font-size: 11.5px;
+      width: 30px;
+      height: 30px;
+      margin: 1px auto;
+      border-radius: 9px;
+      cursor: pointer;
+      transition: all .15s ease;
+    }
+
+    .day-btn:hover { background: rgba(130, 168, 248, .12); }
+    .day-btn.other { color: #adc0de; }
+    .day-btn.active {
+      background: linear-gradient(135deg, #8ab0ff 0%, #709bff 100%);
+      color: #fff;
+      box-shadow: 0 5px 12px rgba(105, 144, 229, 0.28);
+    }
+
+    .record-line {
+      margin-top: 8px;
+      border-top: 1px solid var(--line);
+      padding-top: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 11.5px;
+      color: #6983af;
+    }
+
+    .record-input {
+      width: 92px;
+      border: none;
+      border-bottom: 1px solid #bdd0f5;
+      background: transparent;
+      color: #35578e;
+      font-size: 22px;
+      text-align: right;
+      outline: none;
+      padding: 1px 0;
+    }
+
+    .memo {
+      width: 100%;
+      margin-top: 8px;
+      border: none;
+      border-bottom: 1px solid #bdd0f5;
+      background: transparent;
+      color: #43689b;
+      font-size: 12px;
+      padding: 8px 0;
+      outline: none;
+    }
+
+    .save {
+      margin-top: 9px;
+      width: 100%;
+      border: 1px solid #b7cbf2;
+      background: #f7faff;
+      color: #4f72a7;
+      border-radius: 12px;
+      padding: 9px;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .2s ease;
+    }
+
+    .save:active { transform: scale(.99); }
+
+    .swipe-hint {
+      margin-top: 6px;
+      text-align: center;
+      font-size: 10.5px;
+      color: #86a0c7;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: .55; }
+      50% { opacity: 1; }
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(32, 53, 92, 0.28);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: flex-end;
+      z-index: 20;
+    }
+
+    .modal-box {
+      width: min(100%, 560px);
+      margin: 0 auto;
+      background: #f8fbff;
+      border-top-left-radius: 18px;
+      border-top-right-radius: 18px;
+      border: 1px solid #cfddf8;
+      border-bottom: none;
+      padding: 15px;
+      animation: popup .2s ease;
+    }
+
+    @keyframes popup { from { transform: translateY(24px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    .input {
+      width: 100%;
+      border: 1px solid #c8d9f8;
+      border-radius: 11px;
+      padding: 10px;
+      font-size: 13px;
+      color: #36598f;
+      background: #fff;
+    }
+
+    .field { margin-bottom: 10px; }
+    .label { font-size: 11px; color: #7d95bb; margin-bottom: 4px; display: block; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .unit-custom { display: none; margin-top: 8px; }
+    .unit-custom.show { display: block; }
+  </style>
 </head>
 <body>
-    <!-- Header -->
-    <div class="header">
-        <div class="header-left">
-            <button class="menu-btn" onclick="toggleMenu()">☰</button>
-            <div class="logo">Anulis</div>
-        </div>
-        <div>
-            <button class="grid-btn" onclick="showChartList()">⊞</button>
-            <button class="add-btn" onclick="openModal()">+</button>
-        </div>
+  <div class="orb a"></div>
+  <div class="orb b"></div>
+
+  <div class="app">
+    <div id="homeScreen">
+      <div class="topbar">
+        <div class="brand">Anulis</div>
+        <button class="icon-btn" onclick="openCreateModal()">＋ 新規</button>
+      </div>
+      <div id="chartList" class="list"></div>
+      <div id="emptyState" class="glass card empty" style="display:none;">チャートがありません。<br>「＋ 新規」から作成してください。</div>
     </div>
 
-    <!-- Empty State -->
-    <div class="empty-state" id="emptyState">
-        <div class="fox-icon">
-            <svg viewBox="0 0 100 100">
-                <path d="M20,70 Q30,40 50,50 Q70,40 80,70 L75,85 Q50,75 25,85 Z M35,45 L30,30 L40,40 M65,45 L70,30 L60,40"/>
-            </svg>
+    <div id="chartScreen" class="chart-screen">
+      <div class="chart-head" id="swipeArea">
+        <button class="icon-btn" onclick="closeChart()">← 戻る</button>
+        <div class="chart-name" id="chartTitle">-</div>
+        <button class="icon-btn" onclick="openEditModal()">編集</button>
+      </div>
+
+      <div class="glass card graph-wrap">
+        <div class="graph-label" id="graphInfo">-</div>
+        <canvas id="chartCanvas"></canvas>
+      </div>
+
+      <div class="summary">
+        <div class="glass card">
+          <div class="kpi-label">期日までに終わらせるためには</div>
+          <div><span class="kpi-value" id="dailyNeed">0</span> <span class="kpi-sub" id="dailyUnit">問 / 日</span></div>
+          <div class="kpi-sub" id="remainText">残り 0</div>
         </div>
-        <div class="empty-message">進行中のチャートはありません</div>
-        <button class="add-chart-btn" onclick="openModal()">チャートを追加</button>
-    </div>
-
-    <!-- Chart List -->
-    <div class="chart-list" id="chartList"></div>
-
-    <!-- Chart View -->
-    <div class="chart-view" id="chartView">
-        <div class="chart-view-inner">
-            <div class="chart-header">
-                <button class="back-btn" onclick="closeChart()">←</button>
-                <div class="chart-title" id="chartViewTitle"></div>
-                <div style="display: flex; gap: 10px;">
-                    <button class="share-btn" onclick="shareChart()">⎋</button>
-                    <button class="menu-dots" onclick="openEditModal()">⋮</button>
-                </div>
-            </div>
-            <div class="chart-info">
-                <div class="info-text" id="chartInfoText"></div>
-            </div>
-            <div class="chart-container">
-                <img id="chartBg" class="chart-background" style="display: none;">
-                <div class="chart-canvas-wrapper">
-                    <canvas id="progressChart"></canvas>
-                </div>
-            </div>
-            <div class="daily-target">
-                <div class="target-label">期日までに終わらせるためには</div>
-                <div>
-                    <span class="target-value" id="dailyTarget">0</span>
-                    <span class="target-unit" id="dailyUnit">問</span>
-                </div>
-            </div>
-            <div class="scroll-hint">画面をスクロールして記録をはじめましょう！</div>
-            <div class="record-section">
-                <div class="calendar-header">
-                    <button class="calendar-nav" onclick="changeCalendarMonth(-1)">‹</button>
-                    <div class="calendar-month" id="calendarMonthLabel">2026年3月</div>
-                    <button class="calendar-nav" onclick="changeCalendarMonth(1)">›</button>
-                </div>
-                <div class="weekday-row" id="weekdayRow"></div>
-                <div class="calendar-grid" id="calendarGrid"></div>
-                <div class="record-row">
-                    <div class="record-label" id="recordLabel">3月23日の成果：</div>
-                    <div class="record-input-wrap">
-                        <input type="number" min="0" class="record-input" id="dailyAchievement" value="0">
-                        <span class="record-input-unit" id="recordUnit">問</span>
-                    </div>
-                </div>
-                <textarea class="memo-input" id="dailyMemo" placeholder="メモを追加"></textarea>
-                <button class="save-record-btn" onclick="saveDailyRecord()">保存</button>
-            </div>
+        <div class="glass card">
+          <div class="kpi-label">勉強進捗</div>
+          <div class="kpi-value" id="progressValue">0%</div>
+          <div class="kpi-sub" id="progressSub">0 / 0</div>
         </div>
-    </div>
+      </div>
 
-    <!-- Modal -->
-    <div class="modal" id="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button class="back-btn" onclick="closeModal()">←</button>
-                <div class="modal-title">新規チャート</div>
-                <button class="range-toggle">範囲で指定する</button>
-            </div>
-            <div class="form-section">
-                <div class="form-group">
-                    <label class="form-label">チャート名</label>
-                    <input type="text" class="form-input" id="chartName" placeholder="例: TOEIC単語帳">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">終わらせたい期日</label>
-                    <input type="date" class="form-input" id="deadline">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">終わらせたいページ数を入力</label>
-                    <input type="number" class="form-input" id="pageCount" placeholder="例: 300">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">単位</label>
-                    <button class="unit-selector" onclick="toggleUnitDropdown()">
-                        <span id="selectedUnit">ページ</span>
-                    </button>
-                    <div class="unit-dropdown" id="unitDropdown">
-                        <div class="unit-option" onclick="selectUnit('ページ')">ページ</div>
-                        <div class="unit-option" onclick="selectUnit('問')">問</div>
-                        <div class="unit-option" onclick="selectUnit('ユニット')">ユニット</div>
-                        <div class="unit-option" onclick="selectUnit('カスタム')">カスタム</div>
-                    </div>
-                    <input type="text" id="customUnitInput" class="custom-unit-input" maxlength="10" placeholder="自由入力（例: セット）">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">背景画像 (オプション)</label>
-                    <input type="file" id="bgImageInput" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
-                    <div class="image-upload" onclick="document.getElementById('bgImageInput').click()">
-                        <div id="uploadText">画像をアップロード</div>
-                        <img id="imagePreview" class="image-preview" style="display: none;">
-                    </div>
-                </div>
-            </div>
-            <button class="next-btn" onclick="createChart()">次へ</button>
+      <div class="glass card">
+        <div class="calendar-head">
+          <button class="icon-btn" onclick="changeMonth(-1)">‹</button>
+          <div class="month-label" id="monthLabel">2026年3月</div>
+          <button class="icon-btn" onclick="changeMonth(1)">›</button>
         </div>
-    </div>
+        <div class="week-row" id="weekRow"></div>
+        <div class="day-grid" id="dayGrid"></div>
 
-    <!-- Bottom Navigation -->
-    <div class="bottom-nav">
-        <button class="nav-btn active" onclick="showHome()">⌂</button>
-        <button class="nav-btn">○</button>
-        <button class="nav-btn">⚇</button>
-    </div>
-
-    <div class="side-menu" id="sideMenu" onclick="closeMenu(event)">
-        <div class="side-menu-panel">
-            <div class="menu-title">テーマ変更</div>
-            <div class="theme-buttons">
-                <button class="theme-btn" data-theme-btn="midnight" onclick="applyTheme('midnight')">Midnight</button>
-                <button class="theme-btn" data-theme-btn="forest" onclick="applyTheme('forest')">Forest</button>
-                <button class="theme-btn" data-theme-btn="mono" onclick="applyTheme('mono')">Mono</button>
-            </div>
+        <div class="record-line">
+          <div id="recordLabel">3月23日の成果</div>
+          <div>
+            <input id="recordInput" type="number" min="0" class="record-input" value="0" />
+            <span id="recordUnit">問</span>
+          </div>
         </div>
-    </div>
 
-    <div class="modal" id="editModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button class="back-btn" onclick="closeEditModal()">←</button>
-                <div class="modal-title">チャートを編集</div>
-                <button class="range-toggle" onclick="deleteCurrentChart()">削除</button>
-            </div>
-            <div class="form-section">
-                <div class="form-group">
-                    <label class="form-label">タイトル</label>
-                    <input type="text" class="form-input" id="editChartName">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">期日</label>
-                    <input type="date" class="form-input" id="editDeadline">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">目標値</label>
-                    <input type="number" class="form-input" id="editTotal">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">背景画像を変更 (オプション)</label>
-                    <input type="file" id="editBgImageInput" accept="image/*" style="display: none;" onchange="handleEditImageUpload(event)">
-                    <div class="image-upload" onclick="document.getElementById('editBgImageInput').click()">
-                        <div id="editUploadText">画像をアップロード</div>
-                        <img id="editImagePreview" class="image-preview" style="display: none;">
-                    </div>
-                </div>
-            </div>
-            <button class="next-btn" onclick="saveChartEdit()">保存</button>
+        <input id="memoInput" class="memo" placeholder="メモを書く" />
+        <button class="save" onclick="saveRecord()">保存</button>
+      </div>
+
+      <div class="swipe-hint">←→ スワイプで別チャートへ</div>
+    </div>
+  </div>
+
+  <div class="modal" id="createModal">
+    <div class="modal-box">
+      <div class="field">
+        <label class="label">タイトル</label>
+        <input id="nameInput" class="input" placeholder="例: ターゲット1900" />
+      </div>
+      <div class="row">
+        <div class="field">
+          <label class="label">期日</label>
+          <input id="deadlineInput" type="date" class="input" />
         </div>
+        <div class="field">
+          <label class="label">総量</label>
+          <input id="totalInput" type="number" class="input" placeholder="1900" />
+        </div>
+      </div>
+      <div class="field">
+        <label class="label">単位</label>
+        <select id="unitInput" class="input" onchange="toggleCustomUnit()">
+          <option>問</option>
+          <option>ページ</option>
+          <option>時間</option>
+          <option value="custom">カスタム</option>
+        </select>
+        <input id="customUnit" class="input unit-custom" maxlength="10" placeholder="自由入力（例: セット）" />
+      </div>
+      <button class="primary" onclick="createChart()">作成</button>
+      <button class="save" style="margin-top:8px" onclick="closeCreateModal()">閉じる</button>
     </div>
-
-    <script>
-        let charts = JSON.parse(localStorage.getItem('anulisCharts')) || [];
-        let currentChart = null;
-        let uploadedImage = null;
-        let selectedUnit = 'ページ';
-        let calendarViewDate = new Date();
-        let selectedRecordDate = new Date();
-        const weekdayLabels = ['日', '月', '火', '水', '木', '金', '土'];
-        let swipeStartX = null;
-        let swipeStartY = null;
-        let editUploadedImage = null;
-
-        function toLocalDateKey(date) {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        }
-
-        function parseDateKey(dateKey) {
-            const [year, month, day] = dateKey.split('-').map(Number);
-            return new Date(year, month - 1, day);
-        }
-
-        function formatDateJa(date) {
-            return `${date.getMonth() + 1}月${date.getDate()}日`;
-        }
-
-        function getRecordForDate(chart, dateKey) {
-            return chart.records?.[dateKey] || { amount: 0, memo: '' };
-        }
-
-        function recalculateChartProgress(chart) {
-            const recordEntries = Object.entries(chart.records || {})
-                .sort(([a], [b]) => a.localeCompare(b));
-            let completed = 0;
-            chart.history = [];
-
-            recordEntries.forEach(([date, record]) => {
-                completed += Number(record.amount) || 0;
-                if (completed > chart.total) {
-                    completed = chart.total;
-                }
-                chart.history.push({
-                    date,
-                    remaining: Math.max(chart.total - completed, 0)
-                });
-            });
-
-            chart.completed = Math.max(0, Math.min(completed, chart.total));
-        }
-
-        function openModal() {
-            document.getElementById('modal').style.display = 'block';
-            const defaultDate = new Date();
-            defaultDate.setDate(defaultDate.getDate() + 7);
-            document.getElementById('deadline').value = defaultDate.toISOString().split('T')[0];
-        }
-
-        function closeModal() {
-            document.getElementById('modal').style.display = 'none';
-            resetForm();
-        }
-
-        function resetForm() {
-            document.getElementById('chartName').value = '';
-            document.getElementById('pageCount').value = '';
-            document.getElementById('imagePreview').style.display = 'none';
-            document.getElementById('uploadText').style.display = 'block';
-            document.getElementById('customUnitInput').value = '';
-            document.getElementById('customUnitInput').classList.remove('active');
-            selectedUnit = 'ページ';
-            document.getElementById('selectedUnit').textContent = 'ページ';
-            uploadedImage = null;
-        }
-
-        function toggleUnitDropdown() {
-            const dropdown = document.getElementById('unitDropdown');
-            dropdown.classList.toggle('active');
-        }
-
-        function selectUnit(unit) {
-            selectedUnit = unit;
-            document.getElementById('selectedUnit').textContent = unit;
-            const customInput = document.getElementById('customUnitInput');
-            if (unit === 'カスタム') {
-                customInput.classList.add('active');
-                customInput.focus();
-            } else {
-                customInput.classList.remove('active');
-            }
-            toggleUnitDropdown();
-        }
-
-        function handleImageUpload(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    uploadedImage = e.target.result;
-                    document.getElementById('imagePreview').src = uploadedImage;
-                    document.getElementById('imagePreview').style.display = 'block';
-                    document.getElementById('uploadText').style.display = 'none';
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        function handleEditImageUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                editUploadedImage = e.target.result;
-                document.getElementById('editImagePreview').src = editUploadedImage;
-                document.getElementById('editImagePreview').style.display = 'block';
-                document.getElementById('editUploadText').style.display = 'none';
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function createChart() {
-            const name = document.getElementById('chartName').value;
-            const deadline = document.getElementById('deadline').value;
-            const pageCount = parseInt(document.getElementById('pageCount').value);
-            const customUnit = document.getElementById('customUnitInput').value.trim();
-            const unitValue = selectedUnit === 'カスタム' ? customUnit : selectedUnit;
-
-            if (!name || !deadline || !pageCount || !unitValue) {
-                alert('すべての項目を入力してください');
-                return;
-            }
-
-            const chart = {
-                id: Date.now(),
-                name: name,
-                deadline: deadline,
-                total: pageCount,
-                completed: 0,
-                unit: unitValue,
-                bgImage: uploadedImage,
-                createdAt: new Date().toISOString(),
-                history: [],
-                records: {}
-            };
-
-            charts.push(chart);
-            localStorage.setItem('anulisCharts', JSON.stringify(charts));
-            closeModal();
-            showChart(chart.id);
-        }
-
-        function showChart(chartId) {
-            currentChart = charts.find(c => c.id === chartId);
-            if (!currentChart) return;
-            if (!currentChart.records) {
-                currentChart.records = {};
-            }
-            recalculateChartProgress(currentChart);
-
-            document.getElementById('emptyState').style.display = 'none';
-            document.getElementById('chartList').style.display = 'none';
-            document.getElementById('chartView').style.display = 'block';
-            document.querySelector('.bottom-nav').style.display = 'none';
-
-            document.getElementById('chartViewTitle').textContent = currentChart.name;
-            
-            const startDate = new Date(currentChart.createdAt);
-            const endDate = new Date(currentChart.deadline);
-            const today = new Date();
-            const daysLeft = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
-            const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
-            
-            // Update info text
-            const infoText = `${startDate.getFullYear()}年${startDate.getMonth()+1}月${startDate.getDate()}日 ~ ${endDate.getMonth()+1}月${endDate.getDate()}日 ${currentChart.total}${currentChart.unit}\nあと${daysLeft}日 完了 ${currentChart.completed} 残り ${currentChart.total - currentChart.completed}`;
-            document.getElementById('chartInfoText').textContent = infoText;
-            
-            const dailyTarget = daysLeft > 0 ? Math.ceil((currentChart.total - currentChart.completed) / daysLeft) : 0;
-            document.getElementById('dailyTarget').textContent = dailyTarget;
-            document.getElementById('dailyUnit').textContent = currentChart.unit;
-            document.getElementById('recordUnit').textContent = currentChart.unit;
-
-            selectedRecordDate = new Date();
-            calendarViewDate = new Date(selectedRecordDate.getFullYear(), selectedRecordDate.getMonth(), 1);
-            renderCalendar();
-            loadSelectedDateRecord();
-
-            if (currentChart.bgImage) {
-                document.getElementById('chartBg').src = currentChart.bgImage;
-                document.getElementById('chartBg').style.display = 'block';
-            } else {
-                document.getElementById('chartBg').style.display = 'none';
-            }
-
-            setTimeout(() => drawChart(currentChart, totalDays, daysLeft), 100);
-        }
-
-        function drawChart(chart, totalDays, daysLeft) {
-            const canvas = document.getElementById('progressChart');
-            const wrapper = canvas.parentElement;
-            const ctx = canvas.getContext('2d');
-            
-            const size = Math.min(wrapper.offsetWidth, wrapper.offsetHeight);
-            canvas.width = size;
-            canvas.height = size;
-
-            const padding = size * 0.12;
-            const graphSize = size - padding * 2;
-            const safeTotalDays = Math.max(totalDays, 1);
-
-            ctx.clearRect(0, 0, size, size);
-
-            // axis only
-            ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--line').trim() || 'rgba(255,255,255,0.75)';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(padding, padding);
-            ctx.lineTo(padding, size - padding);
-            ctx.lineTo(size - padding, size - padding);
-            ctx.stroke();
-
-            // Y-axis labels
-            for (let i = 0; i <= 5; i++) {
-                const y = padding + (graphSize / 5) * i;
-                const value = Math.round(chart.total - (chart.total / 5) * i);
-                ctx.fillStyle = 'rgba(255,255,255,0.82)';
-                ctx.font = `${size * 0.028}px sans-serif`;
-                ctx.textAlign = 'right';
-                ctx.fillText(value.toLocaleString(), padding - 8, y + 4);
-            }
-
-            const startDate = new Date(chart.createdAt);
-            
-            // Ideal line (dashed)
-            ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--line-soft').trim() || 'rgba(255,255,255,0.5)';
-            ctx.lineWidth = 2;
-            ctx.setLineDash([8, 8]);
-            ctx.beginPath();
-            ctx.moveTo(padding, padding);
-            ctx.lineTo(size - padding, size - padding);
-            ctx.stroke();
-            ctx.setLineDash([]);
-
-            // Actual progress line
-            if (chart.history.length > 0) {
-                ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--line').trim() || 'rgba(255,255,255,0.75)';
-                ctx.lineWidth = 2.5;
-                ctx.beginPath();
-                ctx.moveTo(padding, padding);
-                
-                chart.history.forEach((point, index) => {
-                    const pointDate = new Date(point.date);
-                    const daysPassed = Math.ceil((pointDate - startDate) / (1000 * 60 * 60 * 24));
-                    const clampedDays = Math.max(0, Math.min(daysPassed, safeTotalDays));
-                    const x = padding + (graphSize * clampedDays / safeTotalDays);
-                    const y = size - padding - (graphSize * (point.remaining / chart.total));
-                    
-                    ctx.lineTo(x, y);
-                });
-                ctx.stroke();
-            }
-
-            // Progress bar at top
-            ctx.fillStyle = 'rgba(255,255,255,0.9)';
-            const barHeight = 2;
-            ctx.fillRect(padding, padding - barHeight - 5, (graphSize * chart.completed / chart.total), barHeight);
-
-            // X-axis labels
-            ctx.fillStyle = 'rgba(255,255,255,0.82)';
-            ctx.font = `${size * 0.024}px sans-serif`;
-            ctx.textAlign = 'center';
-            
-            const datePoints = 6;
-            for (let i = 0; i < datePoints; i++) {
-                const date = new Date(startDate);
-                date.setDate(date.getDate() + (safeTotalDays / (datePoints - 1)) * i);
-                const x = padding + (graphSize / (datePoints - 1)) * i;
-                const label = `${date.getMonth() + 1}/${date.getDate()}`;
-                ctx.fillText(label, x, size - padding + 25);
-            }
-
-            // Y-axis label
-            ctx.fillStyle = 'rgba(255,255,255,0.78)';
-            ctx.font = `${size * 0.028}px sans-serif`;
-            ctx.textAlign = 'left';
-            ctx.fillText(`(残り${chart.unit}数)`, padding, padding - 15);
-        }
-
-        function renderCalendar() {
-            if (!currentChart) return;
-            document.getElementById('calendarMonthLabel').textContent = `${calendarViewDate.getFullYear()}年${calendarViewDate.getMonth() + 1}月`;
-
-            const weekdayRow = document.getElementById('weekdayRow');
-            if (weekdayRow.children.length === 0) {
-                weekdayLabels.forEach(day => {
-                    const cell = document.createElement('div');
-                    cell.className = 'weekday-cell';
-                    cell.textContent = day;
-                    weekdayRow.appendChild(cell);
-                });
-            }
-
-            const grid = document.getElementById('calendarGrid');
-            grid.innerHTML = '';
-
-            const firstDay = new Date(calendarViewDate.getFullYear(), calendarViewDate.getMonth(), 1);
-            const startWeekday = firstDay.getDay();
-            const gridStart = new Date(firstDay);
-            gridStart.setDate(firstDay.getDate() - startWeekday);
-
-            for (let i = 0; i < 42; i++) {
-                const cellDate = new Date(gridStart);
-                cellDate.setDate(gridStart.getDate() + i);
-                const cellBtn = document.createElement('button');
-                cellBtn.className = 'day-cell';
-                cellBtn.textContent = cellDate.getDate();
-
-                if (cellDate.getMonth() !== calendarViewDate.getMonth()) {
-                    cellBtn.classList.add('other-month');
-                }
-
-                if (toLocalDateKey(cellDate) === toLocalDateKey(selectedRecordDate)) {
-                    cellBtn.classList.add('selected');
-                }
-
-                cellBtn.onclick = () => {
-                    selectedRecordDate = cellDate;
-                    if (selectedRecordDate.getMonth() !== calendarViewDate.getMonth() || selectedRecordDate.getFullYear() !== calendarViewDate.getFullYear()) {
-                        calendarViewDate = new Date(selectedRecordDate.getFullYear(), selectedRecordDate.getMonth(), 1);
-                    }
-                    renderCalendar();
-                    loadSelectedDateRecord();
-                };
-                grid.appendChild(cellBtn);
-            }
-        }
-
-        function changeCalendarMonth(offset) {
-            calendarViewDate.setMonth(calendarViewDate.getMonth() + offset);
-            renderCalendar();
-        }
-
-        function loadSelectedDateRecord() {
-            if (!currentChart) return;
-            const dateKey = toLocalDateKey(selectedRecordDate);
-            const record = getRecordForDate(currentChart, dateKey);
-            document.getElementById('recordLabel').textContent = `${formatDateJa(selectedRecordDate)}の成果：`;
-            document.getElementById('dailyAchievement').value = record.amount || 0;
-            document.getElementById('dailyMemo').value = record.memo || '';
-        }
-
-        function saveDailyRecord() {
-            if (!currentChart) return;
-            const dateKey = toLocalDateKey(selectedRecordDate);
-            const amount = Math.max(0, Number(document.getElementById('dailyAchievement').value) || 0);
-            const memo = document.getElementById('dailyMemo').value.trim();
-
-            currentChart.records[dateKey] = { amount, memo };
-            recalculateChartProgress(currentChart);
-            localStorage.setItem('anulisCharts', JSON.stringify(charts));
-
-            const startDate = new Date(currentChart.createdAt);
-            const endDate = new Date(currentChart.deadline);
-            const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
-            const today = new Date();
-            const daysLeft = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
-
-            const infoText = `${startDate.getFullYear()}年${startDate.getMonth()+1}月${startDate.getDate()}日 ~ ${endDate.getMonth()+1}月${endDate.getDate()}日 ${currentChart.total}${currentChart.unit}\nあと${daysLeft}日 完了 ${currentChart.completed} 残り ${currentChart.total - currentChart.completed}`;
-            document.getElementById('chartInfoText').textContent = infoText;
-            const dailyTarget = daysLeft > 0 ? Math.ceil((currentChart.total - currentChart.completed) / daysLeft) : 0;
-            document.getElementById('dailyTarget').textContent = dailyTarget;
-
-            drawChart(currentChart, totalDays, daysLeft);
-            renderCalendar();
-        }
-
-        function closeChart() {
-            document.getElementById('chartView').style.display = 'none';
-            document.querySelector('.bottom-nav').style.display = 'flex';
-            showHome();
-        }
-
-        function shareChart() {
-            alert('チャートのスクリーンショットが自動で添付されます');
-        }
-
-        function openEditModal() {
-            if (!currentChart) return;
-            document.getElementById('editChartName').value = currentChart.name;
-            document.getElementById('editDeadline').value = currentChart.deadline;
-            document.getElementById('editTotal').value = currentChart.total;
-            editUploadedImage = null;
-            document.getElementById('editImagePreview').style.display = currentChart.bgImage ? 'block' : 'none';
-            if (currentChart.bgImage) {
-                document.getElementById('editImagePreview').src = currentChart.bgImage;
-                document.getElementById('editUploadText').style.display = 'none';
-            } else {
-                document.getElementById('editUploadText').style.display = 'block';
-            }
-            document.getElementById('editModal').style.display = 'block';
-        }
-
-        function closeEditModal() {
-            document.getElementById('editModal').style.display = 'none';
-        }
-
-        function saveChartEdit() {
-            if (!currentChart) return;
-            const name = document.getElementById('editChartName').value.trim();
-            const deadline = document.getElementById('editDeadline').value;
-            const total = Number(document.getElementById('editTotal').value);
-            if (!name || !deadline || !total) {
-                alert('入力内容を確認してください');
-                return;
-            }
-            currentChart.name = name;
-            currentChart.deadline = deadline;
-            currentChart.total = total;
-            if (editUploadedImage) {
-                currentChart.bgImage = editUploadedImage;
-            }
-            recalculateChartProgress(currentChart);
-            localStorage.setItem('anulisCharts', JSON.stringify(charts));
-            closeEditModal();
-            showChart(currentChart.id);
-        }
-
-        function deleteCurrentChart() {
-            if (!currentChart) return;
-            if (!confirm('このチャートを削除しますか？')) return;
-            charts = charts.filter(c => c.id !== currentChart.id);
-            localStorage.setItem('anulisCharts', JSON.stringify(charts));
-            closeEditModal();
-            closeChart();
-        }
-
-        function toggleMenu() {
-            document.getElementById('sideMenu').classList.add('active');
-        }
-
-        function closeMenu(event) {
-            if (!event || event.target.id === 'sideMenu') {
-                document.getElementById('sideMenu').classList.remove('active');
-            }
-        }
-
-        function applyTheme(theme) {
-            document.body.setAttribute('data-theme', theme);
-            localStorage.setItem('anulisTheme', theme);
-            document.querySelectorAll('.theme-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.themeBtn === theme);
-            });
-            document.getElementById('sideMenu').classList.remove('active');
-            if (currentChart && document.getElementById('chartView').style.display === 'block') {
-                const startDate = new Date(currentChart.createdAt);
-                const endDate = new Date(currentChart.deadline);
-                const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
-                const today = new Date();
-                const daysLeft = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
-                drawChart(currentChart, totalDays, daysLeft);
-            }
-        }
-
-        function showHome() {
-            document.getElementById('chartView').style.display = 'none';
-            document.getElementById('chartList').style.display = 'none';
-            document.querySelector('.bottom-nav').style.display = 'flex';
-            
-            if (charts.length === 0) {
-                document.getElementById('emptyState').style.display = 'flex';
-            } else {
-                showChartList();
-            }
-        }
-
-        function showChartList() {
-            document.getElementById('emptyState').style.display = 'none';
-            document.getElementById('chartView').style.display = 'none';
-            document.querySelector('.bottom-nav').style.display = 'flex';
-            const listEl = document.getElementById('chartList');
-            listEl.style.display = 'block';
-            
-            listEl.innerHTML = '';
-            charts.forEach(chart => {
-                const progress = (chart.completed / chart.total) * 100;
-                const endDate = new Date(chart.deadline);
-                const today = new Date();
-                const daysLeft = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
-                
-                const card = document.createElement('div');
-                card.className = 'chart-card';
-                card.onclick = () => showChart(chart.id);
-                card.innerHTML = `
-                    <div class="card-title">${chart.name}</div>
-                    <div class="card-info">
-                        期日: ${endDate.getMonth()+1}月${endDate.getDate()}日 (あと${daysLeft}日)<br>
-                        ${chart.completed}/${chart.total}${chart.unit}
-                    </div>
-                    <div class="card-progress">
-                        <div class="card-progress-bar" style="width: ${progress}%"></div>
-                    </div>
-                `;
-                listEl.appendChild(card);
-            });
-        }
-
-        if (charts.length > 0) {
-            showChartList();
-        }
-
-        const savedTheme = localStorage.getItem('anulisTheme') || 'midnight';
-        applyTheme(savedTheme);
-
-        const chartViewInner = document.querySelector('.chart-view-inner');
-        chartViewInner.addEventListener('touchstart', (e) => {
-            const touch = e.changedTouches[0];
-            swipeStartX = touch.clientX;
-            swipeStartY = touch.clientY;
-        }, { passive: true });
-
-        chartViewInner.addEventListener('touchend', (e) => {
-            if (swipeStartX === null || !currentChart) return;
-            const touch = e.changedTouches[0];
-            const dx = touch.clientX - swipeStartX;
-            const dy = touch.clientY - swipeStartY;
-            swipeStartX = null;
-            swipeStartY = null;
-
-            if (Math.abs(dx) < 70 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
-            const currentIndex = charts.findIndex(c => c.id === currentChart.id);
-            if (dx < 0 && currentIndex < charts.length - 1) {
-                showChart(charts[currentIndex + 1].id);
-            } else if (dx > 0 && currentIndex > 0) {
-                showChart(charts[currentIndex - 1].id);
-            }
-        }, { passive: true });
-
-        window.addEventListener('resize', () => {
-            if (currentChart && document.getElementById('chartView').style.display === 'block') {
-                const startDate = new Date(currentChart.createdAt);
-                const endDate = new Date(currentChart.deadline);
-                const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
-                const today = new Date();
-                const daysLeft = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
-                drawChart(currentChart, totalDays, daysLeft);
-            }
+  </div>
+
+  <div class="modal" id="editModal">
+    <div class="modal-box">
+      <div class="field">
+        <label class="label">タイトル</label>
+        <input id="editName" class="input" />
+      </div>
+      <div class="row">
+        <div class="field">
+          <label class="label">期日</label>
+          <input id="editDeadline" type="date" class="input" />
+        </div>
+        <div class="field">
+          <label class="label">総量</label>
+          <input id="editTotal" type="number" class="input" />
+        </div>
+      </div>
+      <button class="primary" onclick="saveEdit()">保存</button>
+      <button class="save" style="margin-top:8px" onclick="deleteChart()">削除</button>
+      <button class="save" style="margin-top:8px" onclick="closeEditModal()">閉じる</button>
+    </div>
+  </div>
+
+  <script>
+    let charts = JSON.parse(localStorage.getItem('anulisCharts') || '[]');
+    let currentChart = null;
+    let selectedDate = new Date();
+    let calendarBase = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
+    const weekLabels = ['日', '月', '火', '水', '木', '金', '土'];
+    let swipeStartX = null;
+    let swipeStartY = null;
+
+    function formatKey(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    function formatJa(date) {
+      return `${date.getMonth() + 1}月${date.getDate()}日`;
+    }
+
+    function openCreateModal() {
+      document.getElementById('createModal').style.display = 'flex';
+      const d = new Date();
+      d.setDate(d.getDate() + 7);
+      document.getElementById('deadlineInput').value = d.toISOString().split('T')[0];
+    }
+
+    function closeCreateModal() {
+      document.getElementById('createModal').style.display = 'none';
+    }
+
+    function toggleCustomUnit() {
+      const unit = document.getElementById('unitInput').value;
+      document.getElementById('customUnit').classList.toggle('show', unit === 'custom');
+    }
+
+    function createChart() {
+      const name = document.getElementById('nameInput').value.trim();
+      const deadline = document.getElementById('deadlineInput').value;
+      const total = Number(document.getElementById('totalInput').value);
+      const unitSel = document.getElementById('unitInput').value;
+      const custom = document.getElementById('customUnit').value.trim();
+      const unit = unitSel === 'custom' ? custom : unitSel;
+
+      if (!name || !deadline || !total || !unit) {
+        alert('入力を確認してください');
+        return;
+      }
+
+      charts.push({
+        id: Date.now(),
+        name,
+        deadline,
+        total,
+        unit,
+        createdAt: new Date().toISOString(),
+        records: {}
+      });
+
+      localStorage.setItem('anulisCharts', JSON.stringify(charts));
+      closeCreateModal();
+      renderList();
+    }
+
+    function computeProgress(chart) {
+      const keys = Object.keys(chart.records || {}).sort();
+      let done = 0;
+      const history = [];
+
+      keys.forEach((key) => {
+        done += Number(chart.records[key]?.amount || 0);
+        if (done > chart.total) done = chart.total;
+        history.push({ date: key, remaining: Math.max(0, chart.total - done) });
+      });
+
+      return { done, history };
+    }
+
+    function renderList() {
+      const list = document.getElementById('chartList');
+      const empty = document.getElementById('emptyState');
+      list.innerHTML = '';
+
+      if (charts.length === 0) {
+        empty.style.display = 'block';
+        return;
+      }
+
+      empty.style.display = 'none';
+      charts.forEach((chart, idx) => {
+        const { done } = computeProgress(chart);
+        const p = chart.total ? Math.round((done / chart.total) * 100) : 0;
+        const d = new Date(chart.deadline);
+
+        const item = document.createElement('div');
+        item.className = 'glass card chart-item';
+        item.style.animationDelay = `${idx * 0.03}s`;
+        item.onclick = () => showChart(chart.id);
+        item.innerHTML = `
+          <div class="title">${chart.name}</div>
+          <div class="meta">期日: ${d.getMonth() + 1}/${d.getDate()} ・ ${done}/${chart.total}${chart.unit}</div>
+          <div class="progress-track"><div class="progress-bar" style="width:${p}%"></div></div>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    function showChart(id) {
+      currentChart = charts.find((c) => c.id === id);
+      if (!currentChart) return;
+
+      document.getElementById('homeScreen').style.display = 'none';
+      document.getElementById('chartScreen').style.display = 'block';
+      document.getElementById('chartTitle').textContent = currentChart.name;
+      selectedDate = new Date();
+      calendarBase = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
+      updateChartUI();
+    }
+
+    function closeChart() {
+      currentChart = null;
+      document.getElementById('chartScreen').style.display = 'none';
+      document.getElementById('homeScreen').style.display = 'block';
+      renderList();
+    }
+
+    function updateChartUI() {
+      if (!currentChart) return;
+
+      const { done, history } = computeProgress(currentChart);
+      const remain = Math.max(0, currentChart.total - done);
+      const deadline = new Date(currentChart.deadline);
+      const today = new Date();
+      const daysLeft = Math.max(0, Math.ceil((deadline - today) / 86400000));
+      const daily = daysLeft > 0 ? Math.ceil(remain / daysLeft) : remain;
+      const progress = currentChart.total ? Math.round((done / currentChart.total) * 100) : 0;
+
+      document.getElementById('graphInfo').textContent = `${currentChart.total}${currentChart.unit} / 残り ${remain}${currentChart.unit}`;
+      document.getElementById('dailyNeed').textContent = daily;
+      document.getElementById('dailyUnit').textContent = `${currentChart.unit} / 日`;
+      document.getElementById('remainText').textContent = `あと${daysLeft}日 ・ 残り${remain}${currentChart.unit}`;
+      document.getElementById('progressValue').textContent = `${progress}%`;
+      document.getElementById('progressSub').textContent = `${done}/${currentChart.total}${currentChart.unit}`;
+      document.getElementById('recordUnit').textContent = currentChart.unit;
+
+      drawGraph(currentChart, history);
+      renderCalendar();
+      loadRecord();
+    }
+
+    function drawGraph(chart, history) {
+      const canvas = document.getElementById('chartCanvas');
+      const ctx = canvas.getContext('2d');
+      const w = canvas.clientWidth;
+      const h = canvas.clientHeight;
+      const ratio = window.devicePixelRatio || 1;
+
+      canvas.width = w * ratio;
+      canvas.height = h * ratio;
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+
+      ctx.clearRect(0, 0, w, h);
+
+      const p = 28;
+      const gw = w - p * 2;
+      const gh = h - p * 2;
+      const startDate = new Date(chart.createdAt);
+      const endDate = new Date(chart.deadline);
+      const spanDays = Math.max(1, Math.ceil((endDate - startDate) / 86400000));
+
+      // axis
+      ctx.strokeStyle = 'rgba(100,132,192,0.85)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(p, p);
+      ctx.lineTo(p, h - p);
+      ctx.lineTo(w - p, h - p);
+      ctx.stroke();
+
+      // ideal line
+      ctx.setLineDash([6, 6]);
+      ctx.strokeStyle = 'rgba(110,153,244,0.58)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(p, p);
+      ctx.lineTo(w - p, h - p);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // actual line (no dot)
+      if (history.length) {
+        ctx.strokeStyle = 'rgba(245,250,255,0.96)';
+        ctx.lineWidth = 2.4;
+        ctx.beginPath();
+        ctx.moveTo(p, p);
+
+        history.forEach((point) => {
+          const d = new Date(point.date);
+          const passed = Math.max(0, Math.min(spanDays, Math.ceil((d - startDate) / 86400000)));
+          const x = p + (gw * passed / spanDays);
+          const y = h - p - (gh * (point.remaining / Math.max(chart.total, 1)));
+          ctx.lineTo(x, y);
         });
-    </script>
+
+        ctx.stroke();
+      }
+
+      // y labels
+      ctx.fillStyle = 'rgba(92,120,170,0.95)';
+      ctx.font = '11px sans-serif';
+      ctx.textAlign = 'right';
+      for (let i = 0; i <= 5; i++) {
+        const y = p + (gh * i / 5);
+        const val = Math.round(chart.total - chart.total * i / 5);
+        ctx.fillText(val.toLocaleString(), p - 6, y + 3);
+      }
+
+      // x labels
+      ctx.textAlign = 'center';
+      for (let i = 0; i <= 5; i++) {
+        const d = new Date(startDate);
+        d.setDate(d.getDate() + Math.round((spanDays / 5) * i));
+        const x = p + (gw * i / 5);
+        ctx.fillText(`${d.getMonth() + 1}/${d.getDate()}`, x, h - 7);
+      }
+    }
+
+    function renderCalendar() {
+      document.getElementById('monthLabel').textContent = `${calendarBase.getFullYear()}年${calendarBase.getMonth() + 1}月`;
+
+      const weekRow = document.getElementById('weekRow');
+      if (!weekRow.innerHTML) {
+        weekRow.innerHTML = weekLabels.map((w) => `<div>${w}</div>`).join('');
+      }
+
+      const grid = document.getElementById('dayGrid');
+      grid.innerHTML = '';
+      const first = new Date(calendarBase.getFullYear(), calendarBase.getMonth(), 1);
+      const start = new Date(first);
+      start.setDate(first.getDate() - first.getDay());
+
+      for (let i = 0; i < 42; i++) {
+        const d = new Date(start);
+        d.setDate(start.getDate() + i);
+
+        const btn = document.createElement('button');
+        btn.className = 'day-btn';
+        if (d.getMonth() !== calendarBase.getMonth()) btn.classList.add('other');
+        if (formatKey(d) === formatKey(selectedDate)) btn.classList.add('active');
+        btn.textContent = d.getDate();
+
+        btn.onclick = () => {
+          selectedDate = d;
+          if (d.getMonth() !== calendarBase.getMonth()) {
+            calendarBase = new Date(d.getFullYear(), d.getMonth(), 1);
+          }
+          renderCalendar();
+          loadRecord();
+        };
+
+        grid.appendChild(btn);
+      }
+    }
+
+    function changeMonth(offset) {
+      calendarBase.setMonth(calendarBase.getMonth() + offset);
+      renderCalendar();
+    }
+
+    function loadRecord() {
+      if (!currentChart) return;
+      const key = formatKey(selectedDate);
+      const rec = currentChart.records[key] || { amount: 0, memo: '' };
+      document.getElementById('recordLabel').textContent = `${formatJa(selectedDate)}の成果`;
+      document.getElementById('recordInput').value = rec.amount || 0;
+      document.getElementById('memoInput').value = rec.memo || '';
+    }
+
+    function saveRecord() {
+      if (!currentChart) return;
+      const key = formatKey(selectedDate);
+      const amount = Math.max(0, Number(document.getElementById('recordInput').value) || 0);
+      const memo = document.getElementById('memoInput').value.trim();
+      currentChart.records[key] = { amount, memo };
+      localStorage.setItem('anulisCharts', JSON.stringify(charts));
+      updateChartUI();
+    }
+
+    function openEditModal() {
+      if (!currentChart) return;
+      document.getElementById('editName').value = currentChart.name;
+      document.getElementById('editDeadline').value = currentChart.deadline;
+      document.getElementById('editTotal').value = currentChart.total;
+      document.getElementById('editModal').style.display = 'flex';
+    }
+
+    function closeEditModal() {
+      document.getElementById('editModal').style.display = 'none';
+    }
+
+    function saveEdit() {
+      if (!currentChart) return;
+      const name = document.getElementById('editName').value.trim();
+      const deadline = document.getElementById('editDeadline').value;
+      const total = Number(document.getElementById('editTotal').value);
+
+      if (!name || !deadline || !total) {
+        alert('入力を確認してください');
+        return;
+      }
+
+      currentChart.name = name;
+      currentChart.deadline = deadline;
+      currentChart.total = total;
+      localStorage.setItem('anulisCharts', JSON.stringify(charts));
+      closeEditModal();
+      updateChartUI();
+    }
+
+    function deleteChart() {
+      if (!currentChart) return;
+      if (!confirm('削除しますか？')) return;
+      charts = charts.filter((c) => c.id !== currentChart.id);
+      localStorage.setItem('anulisCharts', JSON.stringify(charts));
+      closeEditModal();
+      closeChart();
+    }
+
+    function showSiblingChart(direction) {
+      if (!currentChart || charts.length < 2) return;
+      const idx = charts.findIndex((c) => c.id === currentChart.id);
+      if (idx < 0) return;
+      const next = idx + direction;
+      if (next < 0 || next >= charts.length) return;
+      showChart(charts[next].id);
+    }
+
+    const swipeArea = document.getElementById('swipeArea');
+    swipeArea.addEventListener('touchstart', (e) => {
+      const touch = e.changedTouches[0];
+      swipeStartX = touch.clientX;
+      swipeStartY = touch.clientY;
+    }, { passive: true });
+
+    swipeArea.addEventListener('touchend', (e) => {
+      if (swipeStartX === null) return;
+      const touch = e.changedTouches[0];
+      const dx = touch.clientX - swipeStartX;
+      const dy = touch.clientY - swipeStartY;
+      swipeStartX = null;
+      swipeStartY = null;
+      if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.15) return;
+      showSiblingChart(dx < 0 ? 1 : -1);
+    }, { passive: true });
+
+    window.addEventListener('resize', () => {
+      if (!currentChart) return;
+      const { history } = computeProgress(currentChart);
+      drawGraph(currentChart, history);
+    });
+
+    renderList();
+  </script>
 </body>
 </html>
