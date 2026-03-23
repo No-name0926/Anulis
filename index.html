@@ -418,7 +418,6 @@
       gap: 8px;
       margin-top: 8px;
     }
-
     .theme-btn {
       border: 1px solid var(--line);
       border-radius: 10px;
@@ -463,7 +462,6 @@
     <div class="glass auth-card">
       <div class="auth-title">Anulis</div>
       <div class="auth-sub">Google / X(Twitter) でログインして記録を同期</div>
-      <input id="usernameInput" class="input" placeholder="ユーザー名" />
       <button class="auth-btn google" onclick="loginWithGoogle()">Google でログイン</button>
       <button class="auth-btn twitter" onclick="loginWithTwitter()">X(Twitter) でログイン</button>
       <div class="meta" style="margin-top:10px;">※ Firebase設定後に有効化されます</div>
@@ -590,7 +588,7 @@
         <div class="theme-grid" id="themeGrid"></div>
       </div>
       <button class="save" onclick="logoutUser()">ログアウト</button>
-      <button class="save" onclick="closeSettingsModal()">じる</button>
+      <button class="save" onclick="closeSettingsModal()">閉じる</button>
     </div>
   </div>
 
@@ -688,8 +686,7 @@
 
     async function saveCloudData() {
       if (!firebaseReady || !currentUser || !db) return;
-      const usernameInput = document.getElementById('usernameInput');
-      const username = usernameInput?.value?.trim() || currentUser.displayName || 'user';
+      const username = currentUser.displayName || 'user';
       try {
         await db.collection('users').doc(currentUser.uid).set({
           username,
@@ -710,9 +707,7 @@
           const data = snap.data() || {};
           charts = Array.isArray(data.charts) ? data.charts : [];
           if (data.theme) localStorage.setItem('anulisTheme', data.theme);
-          if (data.username) document.getElementById('usernameInput').value = data.username;
         } else {
-          document.getElementById('usernameInput').value = currentUser.displayName || '';
           await saveCloudData();
         }
       } catch (e) {
@@ -750,12 +745,38 @@
 
     async function loginWithGoogle() {
       if (!auth) return alert('Firebase設定を先に入れてください');
-      await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+      const provider = new firebase.auth.GoogleAuthProvider();
+      try {
+        await auth.signInWithPopup(provider);
+      } catch (e) {
+        if (
+          e.code === 'auth/popup-blocked' ||
+          e.code === 'auth/popup-closed-by-user' ||
+          e.code === 'auth/operation-not-supported-in-this-environment'
+        ) {
+          await auth.signInWithRedirect(provider);
+          return;
+        }
+        alert(`Googleログイン失敗: ${e.message}`);
+      }
     }
 
     async function loginWithTwitter() {
       if (!auth) return alert('Firebase設定を先に入れてください');
-      await auth.signInWithPopup(new firebase.auth.TwitterAuthProvider());
+      const provider = new firebase.auth.TwitterAuthProvider();
+      try {
+        await auth.signInWithPopup(provider);
+      } catch (e) {
+        if (
+          e.code === 'auth/popup-blocked' ||
+          e.code === 'auth/popup-closed-by-user' ||
+          e.code === 'auth/operation-not-supported-in-this-environment'
+        ) {
+          await auth.signInWithRedirect(provider);
+          return;
+        }
+        alert(`X(Twitter)ログイン失敗: ${e.message}`);
+      }
     }
 
     async function logoutUser() {
@@ -864,7 +885,6 @@
         drawMiniGraph(item.querySelector('.mini-canvas'), chart);
       });
     }
-
     function drawMiniGraph(canvas, chart) {
       if (!canvas) return;
       const { history } = computeProgress(chart);
@@ -1199,10 +1219,6 @@
       if (Math.abs(dx) < 45 || Math.abs(dx) < Math.abs(dy) * 1.1) return;
       changeMonth(dx < 0 ? 1 : -1);
     }, { passive: true });
-
-    document.getElementById('usernameInput').addEventListener('change', () => {
-      saveCloudData();
-    });
 
     window.addEventListener('resize', () => {
       if (!currentChart) return;
