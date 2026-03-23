@@ -17,6 +17,7 @@
       --accent-deep: #1849c6;
       --accent-soft: #9ebfff;
       --accent-rgb: 43, 109, 255;
+      --theme-pattern: radial-gradient(circle at 18px 18px, rgba(var(--accent-rgb), 0.2) 0 3px, transparent 3px);
       --shadow: 0 14px 30px rgba(var(--accent-rgb), 0.22);
     }
 
@@ -28,9 +29,11 @@
       min-height: 100vh;
       overflow-x: hidden;
       background:
+        var(--theme-pattern),
         radial-gradient(1200px 600px at 10% -10%, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0) 50%),
         radial-gradient(700px 500px at 95% 30%, rgba(168,194,255,0.45) 0%, rgba(168,194,255,0) 60%),
         linear-gradient(180deg, #f6faff 0%, var(--bg) 45%, var(--bg-deep) 100%);
+      background-size: 34px 34px, auto, auto, auto;
     }
 
     .orb {
@@ -110,7 +113,11 @@
 
     .icon-btn:active { transform: scale(0.96); }
 
-    .list { display: grid; gap: 10px; }
+    .list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
 
     .card {
       padding: 13px;
@@ -126,7 +133,7 @@
     .chart-item { cursor: pointer; transition: transform .18s ease, box-shadow .18s ease; }
     .chart-item:active { transform: scale(.985); }
 
-    .title { font-size: 14px; font-weight: 620; color: #33558f; margin-bottom: 5px; }
+    .title { font-size: 14px; font-weight: 620; color: var(--accent-deep); margin-bottom: 5px; }
     .meta { font-size: 11.5px; color: var(--text-soft); line-height: 1.5; }
 
     .progress-track {
@@ -144,7 +151,7 @@
       transition: width .35s ease;
     }
 
-    .empty { text-align: center; padding: 42px 14px; color: #7088b1; font-size: 12.5px; }
+    .empty { text-align: center; padding: 42px 14px; color: var(--text-soft); font-size: 12.5px; }
 
     .primary {
       margin-top: 12px;
@@ -177,27 +184,46 @@
       text-align: center;
       font-size: 15px;
       font-weight: 620;
-      color: #345890;
+      color: var(--accent-deep);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
     .graph-wrap { padding: 12px 10px 8px; margin-bottom: 10px; }
-    .graph-label { font-size: 11px; color: #6885b5; margin-bottom: 6px; }
-    canvas { width: 100% !important; height: 250px !important; display: block; }
+    .graph-label { font-size: 11px; color: var(--text-soft); margin-bottom: 6px; }
+    canvas { width: 100% !important; height: 320px !important; display: block; }
 
-    .summary {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
+    .daily-hero {
+      padding: 14px;
       margin-bottom: 10px;
+      text-align: center;
+      background: linear-gradient(140deg, rgba(var(--accent-rgb), 0.13) 0%, rgba(255,255,255,0.85) 80%);
     }
 
-    .summary .card { padding: 11px; }
-    .kpi-label { font-size: 10.5px; color: #7992bc; margin-bottom: 4px; }
-    .kpi-value { font-size: 23px; font-weight: 700; color: #2d538f; line-height: 1; }
-    .kpi-sub { font-size: 10.5px; color: #7a93bb; margin-top: 4px; }
+    .daily-caption {
+      font-size: 13px;
+      color: var(--text-soft);
+      margin-bottom: 5px;
+      letter-spacing: .03em;
+    }
+
+    .daily-big {
+      font-size: 35px;
+      font-weight: 800;
+      color: var(--accent-deep);
+      line-height: 1.15;
+    }
+
+    .progress-card {
+      margin-bottom: 10px;
+      text-align: center;
+      padding: 12px;
+    }
+
+    .kpi-label { font-size: 11.5px; color: var(--text-soft); margin-bottom: 4px; }
+    .kpi-value { font-size: 25px; font-weight: 700; color: var(--accent-deep); line-height: 1; }
+    .kpi-sub { font-size: 11px; color: var(--text-soft); margin-top: 4px; }
 
     .calendar-head {
       display: flex;
@@ -206,7 +232,7 @@
       margin-bottom: 9px;
     }
 
-    .month-label { font-size: 14px; font-weight: 620; color: #3a609b; }
+    .month-label { font-size: 14px; font-weight: 620; color: var(--accent-deep); }
 
     .week-row,
     .day-grid {
@@ -217,14 +243,14 @@
 
     .week-row {
       font-size: 10.5px;
-      color: #92a7cb;
+      color: var(--text-soft);
       margin-bottom: 5px;
     }
 
     .day-btn {
       border: none;
       background: transparent;
-      color: #5f7faf;
+      color: var(--text);
       font-size: 11.5px;
       width: 30px;
       height: 30px;
@@ -234,8 +260,8 @@
       transition: all .15s ease;
     }
 
-    .day-btn:hover { background: rgba(130, 168, 248, .12); }
-    .day-btn.other { color: #adc0de; }
+    .day-btn:hover { background: rgba(var(--accent-rgb), .12); }
+    .day-btn.other { color: color-mix(in srgb, var(--text-soft) 55%, white); }
     .day-btn.active {
       background: linear-gradient(135deg, var(--accent-soft) 0%, var(--accent) 100%);
       color: #fff;
@@ -251,15 +277,15 @@
       justify-content: space-between;
       gap: 8px;
       font-size: 11.5px;
-      color: #6983af;
+      color: var(--text-soft);
     }
 
     .record-input {
       width: 92px;
       border: none;
-      border-bottom: 1px solid #bdd0f5;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent) 40%, white);
       background: transparent;
-      color: #35578e;
+      color: var(--accent-deep);
       font-size: 22px;
       text-align: right;
       outline: none;
@@ -270,9 +296,9 @@
       width: 100%;
       margin-top: 8px;
       border: none;
-      border-bottom: 1px solid #bdd0f5;
+      border-bottom: 1px solid color-mix(in srgb, var(--accent) 40%, white);
       background: transparent;
-      color: #43689b;
+      color: var(--text);
       font-size: 12px;
       padding: 8px 0;
       outline: none;
@@ -281,9 +307,9 @@
     .save {
       margin-top: 9px;
       width: 100%;
-      border: 1px solid #b7cbf2;
-      background: #f7faff;
-      color: #4f72a7;
+      border: 1px solid color-mix(in srgb, var(--accent) 35%, white);
+      background: color-mix(in srgb, var(--accent) 6%, white);
+      color: var(--accent-deep);
       border-radius: 12px;
       padding: 9px;
       font-size: 12.5px;
@@ -298,7 +324,7 @@
       margin-top: 6px;
       text-align: center;
       font-size: 10.5px;
-      color: #86a0c7;
+      color: var(--text-soft);
       animation: pulse 2s ease-in-out infinite;
     }
 
@@ -320,10 +346,10 @@
     .modal-box {
       width: min(100%, 560px);
       margin: 0 auto;
-      background: #f8fbff;
+      background: color-mix(in srgb, var(--accent) 5%, white);
       border-top-left-radius: 18px;
       border-top-right-radius: 18px;
-      border: 1px solid #cfddf8;
+      border: 1px solid color-mix(in srgb, var(--accent) 25%, white);
       border-bottom: none;
       padding: 15px;
       animation: popup .2s ease;
@@ -333,16 +359,16 @@
 
     .input {
       width: 100%;
-      border: 1px solid #c8d9f8;
+      border: 1px solid color-mix(in srgb, var(--accent) 28%, white);
       border-radius: 11px;
       padding: 10px;
       font-size: 13px;
-      color: #36598f;
+      color: var(--text);
       background: #fff;
     }
 
     .field { margin-bottom: 10px; }
-    .label { font-size: 11px; color: #7d95bb; margin-bottom: 4px; display: block; }
+    .label { font-size: 11px; color: var(--text-soft); margin-bottom: 4px; display: block; }
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .unit-custom { display: none; margin-top: 8px; }
     .unit-custom.show { display: block; }
@@ -368,6 +394,26 @@
       border-color: var(--accent);
       box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.22);
     }
+
+    .mini-canvas {
+      width: 100% !important;
+      height: 90px !important;
+      display: block;
+      margin-top: 8px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.55);
+      border: 1px solid color-mix(in srgb, var(--accent) 25%, white);
+    }
+
+    .chart-switch-out-left { animation: switchOutLeft .2s ease forwards; }
+    .chart-switch-out-right { animation: switchOutRight .2s ease forwards; }
+    .chart-switch-in-left { animation: switchInLeft .24s ease forwards; }
+    .chart-switch-in-right { animation: switchInRight .24s ease forwards; }
+
+    @keyframes switchOutLeft { to { opacity: 0; transform: translateX(-20px); } }
+    @keyframes switchOutRight { to { opacity: 0; transform: translateX(20px); } }
+    @keyframes switchInLeft { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes switchInRight { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
   </style>
 </head>
 <body>
@@ -397,20 +443,19 @@
         <canvas id="chartCanvas"></canvas>
       </div>
 
-      <div class="summary">
-        <div class="glass card">
-          <div class="kpi-label">期日までに終わらせるためには</div>
-          <div><span class="kpi-value" id="dailyNeed">0</span> <span class="kpi-sub" id="dailyUnit">問 / 日</span></div>
-          <div class="kpi-sub" id="remainText">残り 0</div>
-        </div>
-        <div class="glass card">
-          <div class="kpi-label">勉強進捗</div>
-          <div class="kpi-value" id="progressValue">0%</div>
-          <div class="kpi-sub" id="progressSub">0 / 0</div>
-        </div>
+      <div class="glass card daily-hero">
+        <div class="daily-caption">期日までに終わらせるためには</div>
+        <div class="daily-big">一日 <span id="dailyNeed">0</span><span id="dailyUnit">問</span></div>
+        <div class="kpi-sub" id="remainText">残り 0</div>
       </div>
 
-      <div class="glass card">
+      <div class="glass card progress-card">
+        <div class="kpi-label">勉強進捗</div>
+        <div class="kpi-value" id="progressValue">0%</div>
+        <div class="kpi-sub" id="progressSub">0 / 0</div>
+      </div>
+
+      <div class="glass card" id="calendarCard">
         <div class="calendar-head">
           <button class="icon-btn" onclick="changeMonth(-1)">‹</button>
           <div class="month-label" id="monthLabel">2026年3月</div>
@@ -506,15 +551,18 @@
     const weekLabels = ['日', '月', '火', '水', '木', '金', '土'];
     let swipeStartX = null;
     let swipeStartY = null;
+    let calendarSwipeStartX = null;
+    let calendarSwipeStartY = null;
+    let isSwitchingChart = false;
 
     const themes = {
-      blue: { label: '青', bg: '#eef4ff', bgDeep: '#dfeaff', line: '#c9daf9', text: '#284578', textSoft: '#6f89b4', accent: '#2b6dff', accentDeep: '#1849c6', accentSoft: '#9ebfff', accentRgb: '43, 109, 255' },
-      red: { label: '赤', bg: '#fff0f1', bgDeep: '#ffe3e6', line: '#f6cad1', text: '#6f2631', textSoft: '#aa6b76', accent: '#e1475e', accentDeep: '#b62841', accentSoft: '#f7a7b5', accentRgb: '225, 71, 94' },
-      yellow: { label: '黄', bg: '#fff9e8', bgDeep: '#fff3cf', line: '#f7e6ab', text: '#6f5513', textSoft: '#a0843f', accent: '#d9a500', accentDeep: '#a77e00', accentSoft: '#f6d76a', accentRgb: '217, 165, 0' },
-      green: { label: '緑', bg: '#eefbf4', bgDeep: '#dff5e9', line: '#c6e8d4', text: '#1f5c3f', textSoft: '#5e9279', accent: '#1eaf67', accentDeep: '#137f49', accentSoft: '#8be1b5', accentRgb: '30, 175, 103' },
-      orange: { label: '橙', bg: '#fff5eb', bgDeep: '#ffe8d6', line: '#f6d0ab', text: '#77451e', textSoft: '#a56d45', accent: '#ef7d1a', accentDeep: '#c25f09', accentSoft: '#f8b47a', accentRgb: '239, 125, 26' },
-      black: { label: '黒', bg: '#f0f0f0', bgDeep: '#dcdcdc', line: '#b6b6b6', text: '#1e1e1e', textSoft: '#5f5f5f', accent: '#2b2b2b', accentDeep: '#0f0f0f', accentSoft: '#777777', accentRgb: '43, 43, 43' },
-      white: { label: '白', bg: '#ffffff', bgDeep: '#f6f6f6', line: '#dddddd', text: '#2f2f2f', textSoft: '#777777', accent: '#b8b8b8', accentDeep: '#8e8e8e', accentSoft: '#dcdcdc', accentRgb: '142, 142, 142' }
+      blue: { label: '青', bg: '#eef4ff', bgDeep: '#dfeaff', line: '#c9daf9', text: '#284578', textSoft: '#5f7fae', accent: '#2b6dff', accentDeep: '#1849c6', accentSoft: '#9ebfff', accentRgb: '43, 109, 255', pattern: 'repeating-linear-gradient(135deg, rgba(43,109,255,.14) 0 8px, transparent 8px 16px)' },
+      red: { label: '赤', bg: '#fff0f1', bgDeep: '#ffe3e6', line: '#f6cad1', text: '#6f2631', textSoft: '#aa6b76', accent: '#e1475e', accentDeep: '#b62841', accentSoft: '#f7a7b5', accentRgb: '225, 71, 94', pattern: 'radial-gradient(circle at 12px 12px, rgba(225,71,94,.2) 0 3px, transparent 3px)' },
+      yellow: { label: '黄', bg: '#fff9e8', bgDeep: '#fff3cf', line: '#f7e6ab', text: '#6f5513', textSoft: '#a0843f', accent: '#d9a500', accentDeep: '#a77e00', accentSoft: '#f6d76a', accentRgb: '217, 165, 0', pattern: 'repeating-conic-gradient(from 18deg, rgba(217,165,0,.15) 0 8deg, transparent 8deg 25deg)' },
+      green: { label: '緑', bg: '#eefbf4', bgDeep: '#dff5e9', line: '#c6e8d4', text: '#1f5c3f', textSoft: '#5e9279', accent: '#1eaf67', accentDeep: '#137f49', accentSoft: '#8be1b5', accentRgb: '30, 175, 103', pattern: 'linear-gradient(90deg, rgba(30,175,103,.11) 1px, transparent 1px), linear-gradient(rgba(30,175,103,.11) 1px, transparent 1px)' },
+      orange: { label: '橙', bg: '#fff5eb', bgDeep: '#ffe8d6', line: '#f6d0ab', text: '#77451e', textSoft: '#a56d45', accent: '#ef7d1a', accentDeep: '#c25f09', accentSoft: '#f8b47a', accentRgb: '239, 125, 26', pattern: 'repeating-linear-gradient(-45deg, rgba(239,125,26,.16) 0 10px, transparent 10px 20px)' },
+      black: { label: '黒', bg: '#f0f0f0', bgDeep: '#dcdcdc', line: '#b6b6b6', text: '#1e1e1e', textSoft: '#5f5f5f', accent: '#2b2b2b', accentDeep: '#0f0f0f', accentSoft: '#777777', accentRgb: '43, 43, 43', pattern: 'radial-gradient(circle at 15px 15px, rgba(20,20,20,.16) 0 2px, transparent 2px)' },
+      white: { label: '白', bg: '#ffffff', bgDeep: '#f6f6f6', line: '#dddddd', text: '#2f2f2f', textSoft: '#777777', accent: '#b8b8b8', accentDeep: '#8e8e8e', accentSoft: '#dcdcdc', accentRgb: '142, 142, 142', pattern: 'repeating-linear-gradient(45deg, rgba(160,160,160,.12) 0 7px, transparent 7px 14px)' }
     };
 
     function applyTheme(themeName) {
@@ -530,6 +578,7 @@
       root.style.setProperty('--accent-deep', theme.accentDeep);
       root.style.setProperty('--accent-soft', theme.accentSoft);
       root.style.setProperty('--accent-rgb', theme.accentRgb);
+      root.style.setProperty('--theme-pattern', theme.pattern);
       root.style.setProperty('--shadow', `0 14px 30px rgba(${theme.accentRgb}, 0.22)`);
       localStorage.setItem('anulisTheme', key);
 
@@ -648,9 +697,54 @@
           <div class="title">${chart.name}</div>
           <div class="meta">期日: ${d.getMonth() + 1}/${d.getDate()} ・ ${done}/${chart.total}${chart.unit}</div>
           <div class="progress-track"><div class="progress-bar" style="width:${p}%"></div></div>
+          <canvas class="mini-canvas"></canvas>
         `;
         list.appendChild(item);
+        drawMiniGraph(item.querySelector('.mini-canvas'), chart);
       });
+    }
+
+    function drawMiniGraph(canvas, chart) {
+      if (!canvas) return;
+      const { history } = computeProgress(chart);
+      const ctx = canvas.getContext('2d');
+      const w = canvas.clientWidth;
+      const h = canvas.clientHeight;
+      const ratio = window.devicePixelRatio || 1;
+      canvas.width = w * ratio;
+      canvas.height = h * ratio;
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      ctx.clearRect(0, 0, w, h);
+
+      const p = 10;
+      const gw = w - p * 2;
+      const gh = h - p * 2;
+      ctx.strokeStyle = 'rgba(120,140,170,.25)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(p, p, gw, gh);
+
+      const accentRgb = getComputedStyle(document.documentElement).getPropertyValue('--accent-rgb').trim() || '43, 109, 255';
+      const gradient = ctx.createLinearGradient(0, p, 0, h - p);
+      gradient.addColorStop(0, `rgba(${accentRgb}, .35)`);
+      gradient.addColorStop(1, `rgba(${accentRgb}, .04)`);
+
+      const points = history.length ? history : [{ remaining: chart.total }];
+      ctx.beginPath();
+      points.forEach((point, i) => {
+        const x = p + (gw * (i / Math.max(points.length - 1, 1)));
+        const y = p + (gh * (point.remaining / Math.max(chart.total, 1)));
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.strokeStyle = `rgba(${accentRgb}, .95)`;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.lineTo(p + gw, h - p);
+      ctx.lineTo(p, h - p);
+      ctx.closePath();
+      ctx.fillStyle = gradient;
+      ctx.fill();
     }
 
     function showChart(id) {
@@ -685,7 +779,7 @@
 
       document.getElementById('graphInfo').textContent = `${currentChart.total}${currentChart.unit} / 残り ${remain}${currentChart.unit}`;
       document.getElementById('dailyNeed').textContent = daily;
-      document.getElementById('dailyUnit').textContent = `${currentChart.unit} / 日`;
+      document.getElementById('dailyUnit').textContent = currentChart.unit;
       document.getElementById('remainText').textContent = `あと${daysLeft}日 ・ 残り${remain}${currentChart.unit}`;
       document.getElementById('progressValue').textContent = `${progress}%`;
       document.getElementById('progressSub').textContent = `${done}/${currentChart.total}${currentChart.unit}`;
@@ -877,19 +971,37 @@
       closeChart();
     }
 
+    function switchChartWithAnimation(targetId, direction) {
+      if (isSwitchingChart) return;
+      const screen = document.getElementById('chartScreen');
+      const outClass = direction > 0 ? 'chart-switch-out-left' : 'chart-switch-out-right';
+      const inClass = direction > 0 ? 'chart-switch-in-left' : 'chart-switch-in-right';
+      isSwitchingChart = true;
+      screen.classList.add(outClass);
+      setTimeout(() => {
+        screen.classList.remove(outClass);
+        showChart(targetId);
+        screen.classList.add(inClass);
+        setTimeout(() => {
+          screen.classList.remove(inClass);
+          isSwitchingChart = false;
+        }, 240);
+      }, 200);
+    }
+
     function showSiblingChart(direction) {
-      if (!currentChart || charts.length < 2) return;
+      if (!currentChart || charts.length < 2 || isSwitchingChart) return;
       const idx = charts.findIndex((c) => c.id === currentChart.id);
       if (idx < 0) return;
       const next = idx + direction;
       if (next < 0 || next >= charts.length) return;
-      showChart(charts[next].id);
+      switchChartWithAnimation(charts[next].id, direction);
     }
 
     const chartScreen = document.getElementById('chartScreen');
 
     chartScreen.addEventListener('touchstart', (e) => {
-      if (e.target.closest('button, input, textarea, select')) return;
+      if (e.target.closest('button, input, textarea, select, #calendarCard')) return;
       const touch = e.changedTouches[0];
       swipeStartX = touch.clientX;
       swipeStartY = touch.clientY;
@@ -904,6 +1016,24 @@
       swipeStartY = null;
       if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy) * 1.1) return;
       showSiblingChart(dx < 0 ? 1 : -1);
+    }, { passive: true });
+
+    const calendarCard = document.getElementById('calendarCard');
+    calendarCard.addEventListener('touchstart', (e) => {
+      const touch = e.changedTouches[0];
+      calendarSwipeStartX = touch.clientX;
+      calendarSwipeStartY = touch.clientY;
+    }, { passive: true });
+
+    calendarCard.addEventListener('touchend', (e) => {
+      if (calendarSwipeStartX === null) return;
+      const touch = e.changedTouches[0];
+      const dx = touch.clientX - calendarSwipeStartX;
+      const dy = touch.clientY - calendarSwipeStartY;
+      calendarSwipeStartX = null;
+      calendarSwipeStartY = null;
+      if (Math.abs(dx) < 45 || Math.abs(dx) < Math.abs(dy) * 1.1) return;
+      changeMonth(dx < 0 ? 1 : -1);
     }, { passive: true });
 
     window.addEventListener('resize', () => {
