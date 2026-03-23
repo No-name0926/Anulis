@@ -74,6 +74,45 @@
       padding: 16px 14px 30px;
     }
 
+    .auth-screen {
+      width: min(100%, 560px);
+      margin: 28px auto 0;
+      padding: 0 14px;
+    }
+
+    .auth-card {
+      padding: 18px 16px;
+      text-align: center;
+    }
+
+    .auth-title {
+      font-size: 24px;
+      font-weight: 760;
+      color: var(--accent-deep);
+      margin-bottom: 6px;
+    }
+
+    .auth-sub {
+      color: var(--text-soft);
+      font-size: 12.5px;
+      margin-bottom: 14px;
+    }
+
+    .auth-btn {
+      width: 100%;
+      border: none;
+      border-radius: 12px;
+      padding: 11px;
+      margin-top: 8px;
+      color: #fff;
+      font-weight: 650;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .auth-btn.google { background: linear-gradient(135deg, #5393ff 0%, #3574ea 100%); }
+    .auth-btn.twitter { background: linear-gradient(135deg, #59b8ff 0%, #2a98ef 100%); }
+
     .topbar {
       display: grid;
       grid-template-columns: auto 1fr auto;
@@ -420,7 +459,18 @@
   <div class="orb a"></div>
   <div class="orb b"></div>
 
-  <div class="app">
+  <div id="authScreen" class="auth-screen">
+    <div class="glass auth-card">
+      <div class="auth-title">Anulis</div>
+      <div class="auth-sub">Google / X(Twitter) でログインして記録を同期</div>
+      <input id="usernameInput" class="input" placeholder="ユーザー名" />
+      <button class="auth-btn google" onclick="loginWithGoogle()">Google でログイン</button>
+      <button class="auth-btn twitter" onclick="loginWithTwitter()">X(Twitter) でログイン</button>
+      <div class="meta" style="margin-top:10px;">※ Firebase設定後に有効化されます</div>
+    </div>
+  </div>
+
+  <div class="app" style="display:none;">
     <div id="homeScreen">
       <div class="topbar">
         <button class="icon-btn" onclick="openSettingsModal()">☰</button>
@@ -539,10 +589,15 @@
         <label class="label">テーマカラー</label>
         <div class="theme-grid" id="themeGrid"></div>
       </div>
-      <button class="save" onclick="closeSettingsModal()">閉じる</button>
+      <button class="save" onclick="logoutUser()">ログアウト</button>
+      <button class="save" onclick="closeSettingsModal()">じる</button>
     </div>
   </div>
 
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-analytics-compat.js"></script>
   <script>
     let charts = JSON.parse(localStorage.getItem('anulisCharts') || '[]');
     let currentChart = null;
@@ -554,12 +609,27 @@
     let calendarSwipeStartX = null;
     let calendarSwipeStartY = null;
     let isSwitchingChart = false;
+    let auth = null;
+    let db = null;
+    let currentUser = null;
+    let firebaseReady = false;
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAxH83j1DlrVgB_8wHxmCzXnHgAAOcHRkU",
+      authDomain: "anulis-df9ee.firebaseapp.com",
+      databaseURL: "https://anulis-df9ee-default-rtdb.firebaseio.com",
+      projectId: "anulis-df9ee",
+      storageBucket: "anulis-df9ee.firebasestorage.app",
+      messagingSenderId: "346759421387",
+      appId: "1:346759421387:web:4cb87ee4749ed39d062a4e",
+      measurementId: "G-KZ41TSNYGZ"
+    };
 
     const themes = {
-      blue: { label: '青', bg: '#eef4ff', bgDeep: '#dfeaff', line: '#c9daf9', text: '#284578', textSoft: '#5f7fae', accent: '#2b6dff', accentDeep: '#1849c6', accentSoft: '#9ebfff', accentRgb: '43, 109, 255', pattern: 'repeating-linear-gradient(135deg, rgba(43,109,255,.14) 0 8px, transparent 8px 16px)' },
-      red: { label: '赤', bg: '#fff0f1', bgDeep: '#ffe3e6', line: '#f6cad1', text: '#6f2631', textSoft: '#aa6b76', accent: '#e1475e', accentDeep: '#b62841', accentSoft: '#f7a7b5', accentRgb: '225, 71, 94', pattern: 'radial-gradient(circle at 12px 12px, rgba(225,71,94,.2) 0 3px, transparent 3px)' },
+      blue: { label: '青', bg: '#ecf7ff', bgDeep: '#d6eeff', line: '#bfe3ff', text: '#1f4f73', textSoft: '#4c7ea7', accent: '#2f9dff', accentDeep: '#0a71d1', accentSoft: '#9ed5ff', accentRgb: '47, 157, 255', pattern: 'repeating-linear-gradient(135deg, rgba(47,157,255,.17) 0 5px, transparent 5px 12px)' },
+      red: { label: '赤', bg: '#fff0f1', bgDeep: '#ffe3e6', line: '#f6cad1', text: '#6f2631', textSoft: '#aa6b76', accent: '#e1475e', accentDeep: '#b62841', accentSoft: '#f7a7b5', accentRgb: '225, 71, 94', pattern: 'radial-gradient(circle at 8px 8px, rgba(225,71,94,.25) 0 2px, transparent 2px)' },
       yellow: { label: '黄', bg: '#fff9e8', bgDeep: '#fff3cf', line: '#f7e6ab', text: '#6f5513', textSoft: '#a0843f', accent: '#d9a500', accentDeep: '#a77e00', accentSoft: '#f6d76a', accentRgb: '217, 165, 0', pattern: 'repeating-conic-gradient(from 18deg, rgba(217,165,0,.15) 0 8deg, transparent 8deg 25deg)' },
-      green: { label: '緑', bg: '#eefbf4', bgDeep: '#dff5e9', line: '#c6e8d4', text: '#1f5c3f', textSoft: '#5e9279', accent: '#1eaf67', accentDeep: '#137f49', accentSoft: '#8be1b5', accentRgb: '30, 175, 103', pattern: 'linear-gradient(90deg, rgba(30,175,103,.11) 1px, transparent 1px), linear-gradient(rgba(30,175,103,.11) 1px, transparent 1px)' },
+      green: { label: '緑', bg: '#eefbf4', bgDeep: '#dff5e9', line: '#c6e8d4', text: '#1f5c3f', textSoft: '#5e9279', accent: '#1eaf67', accentDeep: '#137f49', accentSoft: '#8be1b5', accentRgb: '30, 175, 103', pattern: 'repeating-linear-gradient(60deg, rgba(30,175,103,.14) 0 4px, transparent 4px 14px), repeating-linear-gradient(-60deg, rgba(30,175,103,.12) 0 4px, transparent 4px 14px)' },
       orange: { label: '橙', bg: '#fff5eb', bgDeep: '#ffe8d6', line: '#f6d0ab', text: '#77451e', textSoft: '#a56d45', accent: '#ef7d1a', accentDeep: '#c25f09', accentSoft: '#f8b47a', accentRgb: '239, 125, 26', pattern: 'repeating-linear-gradient(-45deg, rgba(239,125,26,.16) 0 10px, transparent 10px 20px)' },
       black: { label: '黒', bg: '#f0f0f0', bgDeep: '#dcdcdc', line: '#b6b6b6', text: '#1e1e1e', textSoft: '#5f5f5f', accent: '#2b2b2b', accentDeep: '#0f0f0f', accentSoft: '#777777', accentRgb: '43, 43, 43', pattern: 'radial-gradient(circle at 15px 15px, rgba(20,20,20,.16) 0 2px, transparent 2px)' },
       white: { label: '白', bg: '#ffffff', bgDeep: '#f6f6f6', line: '#dddddd', text: '#2f2f2f', textSoft: '#777777', accent: '#b8b8b8', accentDeep: '#8e8e8e', accentSoft: '#dcdcdc', accentRgb: '142, 142, 142', pattern: 'repeating-linear-gradient(45deg, rgba(160,160,160,.12) 0 7px, transparent 7px 14px)' }
@@ -581,6 +651,9 @@
       root.style.setProperty('--theme-pattern', theme.pattern);
       root.style.setProperty('--shadow', `0 14px 30px rgba(${theme.accentRgb}, 0.22)`);
       localStorage.setItem('anulisTheme', key);
+      if (!currentChart) renderList();
+      if (currentChart) updateChartUI();
+      saveCloudData();
 
       document.querySelectorAll('.theme-btn').forEach((btn) => {
         btn.classList.toggle('active', btn.dataset.theme === key);
@@ -602,6 +675,93 @@
 
     function closeSettingsModal() {
       document.getElementById('settingsModal').style.display = 'none';
+    }
+
+    function isFirebaseConfigured() {
+      return firebaseConfig.apiKey && firebaseConfig.projectId;
+    }
+
+    function saveLocalData() {
+      localStorage.setItem('anulisCharts', JSON.stringify(charts));
+      localStorage.setItem('anulisTheme', localStorage.getItem('anulisTheme') || 'blue');
+    }
+
+    async function saveCloudData() {
+      if (!firebaseReady || !currentUser || !db) return;
+      const usernameInput = document.getElementById('usernameInput');
+      const username = usernameInput?.value?.trim() || currentUser.displayName || 'user';
+      try {
+        await db.collection('users').doc(currentUser.uid).set({
+          username,
+          charts,
+          theme: localStorage.getItem('anulisTheme') || 'blue',
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+      } catch (e) {
+        console.warn('cloud save failed', e);
+      }
+    }
+
+    async function loadCloudData() {
+      if (!firebaseReady || !currentUser || !db) return;
+      try {
+        const snap = await db.collection('users').doc(currentUser.uid).get();
+        if (snap.exists) {
+          const data = snap.data() || {};
+          charts = Array.isArray(data.charts) ? data.charts : [];
+          if (data.theme) localStorage.setItem('anulisTheme', data.theme);
+          if (data.username) document.getElementById('usernameInput').value = data.username;
+        } else {
+          document.getElementById('usernameInput').value = currentUser.displayName || '';
+          await saveCloudData();
+        }
+      } catch (e) {
+        console.warn('cloud load failed', e);
+      }
+    }
+
+    function setSignedInUI(signedIn) {
+      document.getElementById('authScreen').style.display = signedIn ? 'none' : 'block';
+      document.querySelector('.app').style.display = signedIn ? 'block' : 'none';
+    }
+
+    async function initFirebaseAuth() {
+      if (!window.firebase || !isFirebaseConfigured()) {
+        setSignedInUI(true);
+        return;
+      }
+      firebase.initializeApp(firebaseConfig);
+      if (firebase.analytics) firebase.analytics();
+      auth = firebase.auth();
+      db = firebase.firestore();
+      firebaseReady = true;
+      auth.onAuthStateChanged(async (user) => {
+        currentUser = user;
+        if (user) {
+          setSignedInUI(true);
+          await loadCloudData();
+          renderThemeButtons();
+          renderList();
+        } else {
+          setSignedInUI(false);
+        }
+      });
+    }
+
+    async function loginWithGoogle() {
+      if (!auth) return alert('Firebase設定を先に入れてください');
+      await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+    }
+
+    async function loginWithTwitter() {
+      if (!auth) return alert('Firebase設定を先に入れてください');
+      await auth.signInWithPopup(new firebase.auth.TwitterAuthProvider());
+    }
+
+    async function logoutUser() {
+      if (!auth) return;
+      await auth.signOut();
+      closeSettingsModal();
     }
 
     function formatKey(date) {
@@ -654,7 +814,8 @@
         records: {}
       });
 
-      localStorage.setItem('anulisCharts', JSON.stringify(charts));
+      saveLocalData();
+      saveCloudData();
       closeCreateModal();
       renderList();
     }
@@ -719,11 +880,11 @@
       const p = 10;
       const gw = w - p * 2;
       const gh = h - p * 2;
-      ctx.strokeStyle = 'rgba(120,140,170,.25)';
+      const accentRgb = getComputedStyle(document.documentElement).getPropertyValue('--accent-rgb').trim() || '43, 109, 255';
+      ctx.strokeStyle = `rgba(${accentRgb}, .25)`;
       ctx.lineWidth = 1;
       ctx.strokeRect(p, p, gw, gh);
 
-      const accentRgb = getComputedStyle(document.documentElement).getPropertyValue('--accent-rgb').trim() || '43, 109, 255';
       const gradient = ctx.createLinearGradient(0, p, 0, h - p);
       gradient.addColorStop(0, `rgba(${accentRgb}, .35)`);
       gradient.addColorStop(1, `rgba(${accentRgb}, .04)`);
@@ -732,7 +893,7 @@
       ctx.beginPath();
       points.forEach((point, i) => {
         const x = p + (gw * (i / Math.max(points.length - 1, 1)));
-        const y = p + (gh * (point.remaining / Math.max(chart.total, 1)));
+        const y = h - p - (gh * (point.remaining / Math.max(chart.total, 1)));
         if (i === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
       });
@@ -927,7 +1088,8 @@
       const amount = Math.max(0, Number(document.getElementById('recordInput').value) || 0);
       const memo = document.getElementById('memoInput').value.trim();
       currentChart.records[key] = { amount, memo };
-      localStorage.setItem('anulisCharts', JSON.stringify(charts));
+      saveLocalData();
+      saveCloudData();
       updateChartUI();
     }
 
@@ -957,7 +1119,8 @@
       currentChart.name = name;
       currentChart.deadline = deadline;
       currentChart.total = total;
-      localStorage.setItem('anulisCharts', JSON.stringify(charts));
+      saveLocalData();
+      saveCloudData();
       closeEditModal();
       updateChartUI();
     }
@@ -966,7 +1129,8 @@
       if (!currentChart) return;
       if (!confirm('削除しますか？')) return;
       charts = charts.filter((c) => c.id !== currentChart.id);
-      localStorage.setItem('anulisCharts', JSON.stringify(charts));
+      saveLocalData();
+      saveCloudData();
       closeEditModal();
       closeChart();
     }
@@ -1036,6 +1200,10 @@
       changeMonth(dx < 0 ? 1 : -1);
     }, { passive: true });
 
+    document.getElementById('usernameInput').addEventListener('change', () => {
+      saveCloudData();
+    });
+
     window.addEventListener('resize', () => {
       if (!currentChart) return;
       const { history } = computeProgress(currentChart);
@@ -1044,6 +1212,7 @@
 
     renderThemeButtons();
     renderList();
+    initFirebaseAuth();
   </script>
 </body>
 </html>
