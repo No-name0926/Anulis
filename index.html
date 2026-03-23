@@ -11,10 +11,9 @@
             --primary-color: #0070bc;
             --accent-color: #00c6ff;
             --bg-gradient: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            --card-bg: rgba(255, 255, 255, 0.85);
+            --card-bg: rgba(255, 255, 255, 0.82);
             --text-main: #333;
-            --text-sub: #666;
-            --safe-color: #10b981;
+            --text-sub: #777;
         }
 
         * {
@@ -25,7 +24,7 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background: var(--bg-gradient);
             background-attachment: fixed;
             color: var(--text-main);
@@ -33,438 +32,137 @@
             padding-bottom: 100px;
         }
 
-        /* ヘッダー */
-        .header {
-            padding: 50px 20px 20px;
-            background: rgba(255, 255, 255, 0.5);
-            backdrop-filter: blur(10px);
+        /* ヘッダー周り (画像1の配置を再現) */
+        .top-nav {
+            padding: 50px 20px 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            border-bottom: 1px solid rgba(255,255,255,0.3);
         }
 
-        .logo {
-            font-size: 22px;
+        .menu-icon { font-size: 24px; color: var(--primary-color); }
+        .logo-text {
+            font-size: 24px;
             font-weight: 800;
-            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: var(--accent-color);
+            letter-spacing: 1px;
         }
 
-        .add-btn {
-            background: var(--primary-color);
-            color: white;
-            border: none;
+        .action-icons {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .grid-icon, .add-circle-btn {
+            background: rgba(255,255,255,0.6);
+            border-radius: 12px;
             width: 40px;
             height: 40px;
-            border-radius: 50%;
-            font-size: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 15px rgba(0,112,188,0.3);
-        }
-
-        /* メインコンテンツ */
-        .container {
-            padding: 20px;
-        }
-
-        /* チャートカード */
-        .chart-card {
-            background: var(--card-bg);
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-            backdrop-filter: blur(5px);
-            border: 1px solid rgba(255,255,255,0.5);
-            transition: transform 0.2s;
-        }
-
-        .chart-card:active {
-            transform: scale(0.98);
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 15px;
-        }
-
-        .card-title {
-            font-size: 18px;
-            font-weight: 700;
-        }
-
-        .card-days {
-            font-size: 12px;
-            color: var(--primary-color);
-            font-weight: 600;
-            background: rgba(0,112,188,0.1);
-            padding: 4px 10px;
-            border-radius: 20px;
-        }
-
-        /* プログレスバー（前作を継承） */
-        .progress-container {
-            height: 10px;
-            background: #e0e0e0;
-            border-radius: 5px;
-            overflow: hidden;
-            margin: 10px 0;
-        }
-
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
-            transition: width 0.5s ease;
-        }
-
-        .stats-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 13px;
-            color: var(--text-sub);
-        }
-
-        /* 記録セクション */
-        .chart-detail {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: var(--bg-gradient);
-            z-index: 200;
-            overflow-y: auto;
-            padding-bottom: 50px;
-        }
-
-        .detail-header {
-            padding: 50px 20px 20px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .back-btn {
-            background: none;
-            border: none;
-            font-size: 20px;
+            border: 1px solid rgba(255,255,255,0.4);
             cursor: pointer;
+            font-size: 20px;
+            color: var(--primary-color);
         }
 
-        /* グラフエリア */
-        .chart-container {
-            margin: 20px;
-            background: white;
-            padding: 15px;
-            border-radius: 24px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-        }
-
-        /* カレンダー風入力 */
-        .record-card {
-            background: white;
-            margin: 20px;
-            padding: 20px;
-            border-radius: 24px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-        }
-
-        .input-group {
-            margin-bottom: 20px;
-        }
-
-        .input-label {
-            display: block;
-            font-size: 13px;
-            color: var(--text-sub);
-            margin-bottom: 8px;
-        }
-
-        input[type="text"], input[type="number"], input[type="date"], select {
-            width: 100%;
-            padding: 12px 16px;
-            border-radius: 12px;
-            border: 1px solid #ddd;
-            font-size: 16px;
-            outline: none;
-        }
-
-        .save-btn {
-            width: 100%;
-            padding: 15px;
-            background: var(--primary-color);
+        .add-circle-btn {
+            background: var(--accent-color);
             color: white;
             border: none;
-            border-radius: 15px;
-            font-size: 16px;
-            font-weight: 700;
-            box-shadow: 0 4px 15px rgba(0,112,188,0.3);
+            box-shadow: 0 4px 15px rgba(0,198,255,0.3);
         }
 
-        /* モーダル */
-        #modal {
+        .page-title {
+            padding: 0 20px 20px;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        /* チャートリストのグリッド (画像2を再現) */
+        .chart-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            padding: 0 15px;
+        }
+
+        .chart-card {
+            background: var(--card-bg);
+            border-radius: 18px;
+            padding: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.04);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.5);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .card-bg-img {
+            position: absolute;
+            bottom: 0; right: 0;
+            width: 60%; opacity: 0.1;
+            z-index: 0;
+        }
+
+        .card-content { z-index: 1; }
+
+        .card-title { font-size: 15px; font-weight: 700; margin-bottom: 2px; }
+        .card-info { font-size: 11px; color: var(--text-sub); line-height: 1.4; }
+
+        .progress-box { margin-top: 10px; }
+        .progress-bar-bg {
+            height: 6px;
+            background: rgba(0,0,0,0.05);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            border-radius: 3px;
+            transition: width 0.6s ease;
+        }
+        .progress-text {
+            text-align: right;
+            font-size: 10px;
+            margin-top: 4px;
+            font-weight: 600;
+        }
+
+        /* モーダル (画像3の配置を再現) */
+        .modal-overlay {
             display: none;
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(5px);
-            z-index: 300;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
             justify-content: center;
-            align-items: center;
+            align-items: flex-end; /* 下から出るアニメーション風 */
         }
 
-        .modal-content {
+        .modal-window {
             background: white;
-            width: 90%;
-            max-width: 400px;
-            padding: 30px;
-            border-radius: 30px;
+            width: 100%;
+            max-width: 450px;
+            border-radius: 30px 30px 0 0;
+            padding: 30px 25px;
+            animation: slideUp 0.3s ease-out;
         }
 
-        .target-hint {
-            background: #fff9db;
-            padding: 15px;
-            border-radius: 12px;
-            margin-top: 15px;
-            text-align: center;
-            border: 1px solid #fab005;
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
         }
 
-        .target-number {
-            font-size: 24px;
-            font-weight: 800;
-            color: var(--primary-color);
-        }
-    </style>
-</head>
-<body>
-
-    <div class="header">
-        <div class="logo">Anulis</div>
-        <button class="add-btn" onclick="openModal()">+</button>
-    </div>
-
-    <div class="container" id="chartList">
-        </div>
-
-    <div id="modal">
-        <div class="modal-content">
-            <h2 style="margin-bottom: 20px;">新規チャート</h2>
-            <div class="input-group">
-                <label class="input-label">タイトル</label>
-                <input type="text" id="chartTitle" placeholder="例: 青チャート 数学I">
-            </div>
-            <div class="input-group">
-                <label class="input-label">期日</label>
-                <input type="date" id="chartDeadline">
-            </div>
-            <div class="input-group">
-                <label class="input-label">目標量</label>
-                <input type="number" id="chartTotal" placeholder="300">
-            </div>
-            <div class="input-group">
-                <label class="input-label">単位</label>
-                <select id="chartUnit">
-                    <option value="ページ">ページ</option>
-                    <option value="問">問</option>
-                    <option value="ユニット">ユニット</option>
-                    <option value="章">章</option>
-                </select>
-            </div>
-            <button class="save-btn" onclick="createNewChart()">作成する</button>
-            <button onclick="closeModal()" style="width:100%; border:none; background:none; margin-top:15px; color:#999;">キャンセル</button>
-        </div>
-    </div>
-
-    <div class="chart-detail" id="chartDetail">
-        <div class="detail-header">
-            <button class="back-btn" onclick="closeDetail()">←</button>
-            <h2 id="detailTitle">チャート詳細</h2>
-        </div>
-
-        <div class="chart-container">
-            <canvas id="detailChartCanvas"></canvas>
-        </div>
-
-        <div class="record-card">
-            <div class="target-hint">
-                <div style="font-size: 12px; color: #666;">今日から完了までに必要な1日の目安</div>
-                <div><span class="target-number" id="dailyPace">--</span> <span id="paceUnit">問</span></div>
-            </div>
-
-            <div class="input-group" style="margin-top: 20px;">
-                <label class="input-label">今日（または選択日）の成果</label>
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <input type="number" id="recordAmount" placeholder="0">
-                    <span id="recordUnitLabel">ページ</span>
-                </div>
-            </div>
-            <button class="save-btn" onclick="saveRecord()">進捗を保存</button>
-        </div>
-    </div>
-
-    <script>
-        let charts = JSON.parse(localStorage.getItem('anulis_pacer_charts')) || [];
-        let activeChartId = null;
-        let chartInstance = null;
-
-        function openModal() { document.getElementById('modal').style.display = 'flex'; }
-        function closeModal() { document.getElementById('modal').style.display = 'none'; }
-
-        function createNewChart() {
-            const title = document.getElementById('chartTitle').value;
-            const deadline = document.getElementById('chartDeadline').value;
-            const total = parseInt(document.getElementById('chartTotal').value);
-            const unit = document.getElementById('chartUnit').value;
-
-            if (!title || !deadline || !total) return alert('入力してください');
-
-            const newChart = {
-                id: Date.now(),
-                title,
-                deadline,
-                total,
-                unit,
-                completed: 0,
-                records: {} // 日付ごとの記録 '2026-03-23': 10
-            };
-
-            charts.push(newChart);
-            saveToStorage();
-            renderChartList();
-            closeModal();
-        }
-
-        function saveToStorage() {
-            localStorage.setItem('anulis_pacer_charts', JSON.stringify(charts));
-        }
-
-        function renderChartList() {
-            const list = document.getElementById('chartList');
-            list.innerHTML = '';
-
-            charts.forEach(c => {
-                const percent = Math.min(100, Math.floor((c.completed / c.total) * 100));
-                const daysLeft = Math.ceil((new Date(c.deadline) - new Date()) / (1000*60*60*24));
-
-                const card = document.createElement('div');
-                card.className = 'chart-card';
-                card.onclick = () => openDetail(c.id);
-                card.innerHTML = `
-                    <div class="card-header">
-                        <div class="card-title">${c.title}</div>
-                        <div class="card-days">あと ${daysLeft}日</div>
-                    </div>
-                    <div class="progress-container">
-                        <div class="progress-bar" style="width: ${percent}%"></div>
-                    </div>
-                    <div class="stats-row">
-                        <div>${percent}% 完了</div>
-                        <div>${c.completed} / ${c.total} ${c.unit}</div>
-                    </div>
-                `;
-                list.appendChild(card);
-            });
-        }
-
-        function openDetail(id) {
-            activeChartId = id;
-            const chart = charts.find(c => c.id === id);
-            document.getElementById('detailTitle').textContent = chart.title;
-            document.getElementById('recordUnitLabel').textContent = chart.unit;
-            document.getElementById('paceUnit').textContent = chart.unit;
-            document.getElementById('chartDetail').style.display = 'block';
-            
-            updatePace(chart);
-            renderGraph(chart);
-        }
-
-        function closeDetail() {
-            document.getElementById('chartDetail').style.display = 'none';
-        }
-
-        function updatePace(chart) {
-            const daysLeft = Math.ceil((new Date(chart.deadline) - new Date()) / (1000*60*60*24));
-            const remaining = Math.max(0, chart.total - chart.completed);
-            const pace = daysLeft > 0 ? Math.ceil(remaining / daysLeft) : remaining;
-            document.getElementById('dailyPace').textContent = pace;
-        }
-
-        function saveRecord() {
-            const amount = parseInt(document.getElementById('recordAmount').value);
-            if (isNaN(amount)) return;
-
-            const chart = charts.find(c => c.id === activeChartId);
-            const today = new Date().toISOString().split('T')[0];
-            
-            // 以前の記録がある場合は差分を計算するか、上書きするか
-            // シンプルに「今日の分」として加算
-            chart.completed += amount;
-            chart.records[today] = (chart.records[today] || 0) + amount;
-
-            saveToStorage();
-            updatePace(chart);
-            renderGraph(chart);
-            renderChartList();
-            document.getElementById('recordAmount').value = '';
-
-            confetti({
-                particleCount: 100,
-                spread: 70,
-                origin: { y: 0.6 },
-                colors: ['#0070bc', '#00c6ff', '#ffffff']
-            });
-        }
-
-        function renderGraph(chartData) {
-            const ctx = document.getElementById('detailChartCanvas').getContext('2d');
-            if (chartInstance) chartInstance.destroy();
-
-            // 簡易的な理想線と実績線のデータ生成
-            const labels = ['開始', '現在', '期日'];
-            const dataActual = [0, chartData.completed, null];
-            const dataIdeal = [0, null, chartData.total];
-
-            chartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: '実績',
-                        data: dataActual,
-                        borderColor: '#0070bc',
-                        backgroundColor: 'rgba(0, 112, 188, 0.1)',
-                        fill: true,
-                        tension: 0.4
-                    }, {
-                        label: '理想ライン',
-                        data: [0, (chartData.total/2), chartData.total], // 簡易直線
-                        borderColor: '#ccc',
-                        borderDash: [5, 5],
-                        fill: false
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { beginAtZero: true, max: chartData.total }
-                    }
-                }
-            });
-        }
-
-        // 初期表示
-        renderChartList();
-    </script>
-</body>
-</html>
+        .close-btn { width: 36px; height: 36px; border-radius: 50%; backgr
