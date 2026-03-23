@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vulpe - 学習ペースメーカー</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: #1a1a1a;
+            color: #ffffff;
+            min-height: 100vh;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: #1a1a1a;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .menu-btn, .grid-btn, .add-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        .logo {
+            font-size: 18px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo::before {
+            content: '✈';
+            font-size: 20px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: calc(100vh - 140px);
+            padding: 20px;
+        }
+
+        .fox-icon {
+            width: 150px;
+            height: 150px;
+            background: linear-gradient(135deg, #4a6fa5 0%, #2d4a7a 100%);
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .fox-icon svg {
+            width: 90px;
+            height: 90px;
+            fill: white;
+        }
+
+        .empty-message {
+            font-size: 16px;
+            color: #9ca3af;
+            margin-bottom: 25px;
+        }
+
+        .add-chart-btn {
+            background: linear-gradient(135deg, #6b8fc9 0%, #5a7ab8 100%);
+            color: white;
+            border: none;
+            padding: 14px 40px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: transform 0.2s;
+        }
+
+        .add-chart-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: #2a2a2a;
+            margin: 0;
+            height: 100%;
+            overflow-y: auto;
+            animation: slideUp 0.3s;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: #1a1a1a;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .back-btn, .range-toggle {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .form-section {
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            color: #9ca3af;
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 15px;
+            background: #3a3a3a;
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 16px;
+        }
+
+        .form-input::placeholder {
+            color: #6b7280;
+        }
+
+        .unit-selector {
+            width: 100%;
+            padding: 15px;
+            background: #3a3a3a;
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .unit-dropdown {
+            display: none;
+            background: #3a3a3a;
+            border-radius: 10px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .unit-dropdown.active {
+            display: block;
+        }
+
+        .unit-option {
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .unit-option:hover {
+            background: #4a4a4a;
+        }
+
+        .image-upload {
+            width: 100%;
+            padding: 40px;
+            background: #3a3a3a;
+            border: 2px dashed #6b7280;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .image-upload:hover {
+            border-color: #9ca3af;
+            background: #4a4a4a;
+        }
+
+        .image-preview {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+
+        .next-btn {
+            width: calc(100% - 40px);
+            margin: 20px;
+            padding: 16px;
+            background: linear-gradient(135deg, #6b8fc9 0%, #5a7ab8 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: 500;
+            position: sticky;
+            bottom: 20px;
+        }
+
+        /* Chart View */
+        .chart-view {
+            display: none;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .chart-header {
+            padding: 15px 20px;
+            background: #1a1a1a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chart-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .share-btn, .menu-dots {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        .chart-info {
+            padding: 20px;
+            background: #1a1a1a;
+        }
+
+        .info-row {
+            display: flex;
+            gap: 20px;
+            font-size: 14px;
+            color: #9ca3af;
+            margin-bottom: 10px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 600px;
+            padding: 20px;
+        }
+
+        .chart-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            object-fit: cover;
+            opacity: 0.3;
+            filter: blur(2px);
+        }
+
+        canvas {
+            position: relative;
+            z-index: 1;
+        }
+
+        .daily-target {
+            text-align: center;
+            padding: 30px 20px;
+            background: #1a1a1a;
+        }
+
+        .target-label {
+            font-size: 14px;
+            color: #9ca3af;
+            margin-bottom: 10px;
+        }
+
+        .target-value {
+            font-size: 48px;
+            font-weight: 700;
+        }
+
+        .target-unit {
+            font-size: 24px;
+            color: #9ca3af;
+            margin-left: 5px;
+        }
+
+        .scroll-hint {
+            text-align: center;
+            padding: 20px;
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #1a1a1a;
+            display: flex;
+            justify-content: space-around;
+            padding: 15px 0 25px 0;
+            border-top: 1px solid #2a2a2a;
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            color: #6b7280;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 8px 20px;
+            transition: color 0.2s;
+        }
+
+        .nav-btn.active {
+            color: white;
+        }
+
+        /* Chart List */
+        .chart-list {
+            display: none;
+            padding: 20px;
+            padding-bottom: 100px;
+        }
+
+        .chart-card {
+            background: #2a2a2a;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .chart-card:active {
+            transform: scale(0.98);
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .card-info {
+            font-size: 14px;
+            color: #9ca3af;
+        }
+
+        .card-progress {
+            margin-top: 15px;
+            height: 6px;
+            background: #3a3a3a;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .card-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #4ade80 0%, #22c55e 100%);
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-left">
+            <button class="menu-btn" onclick="toggleMenu()">☰</button>
+            <div class="logo">Vulpe</div>
+        </div>
+        <div>
+            <button class="grid-btn" onclick="showChartList()">⊞</button>
+            <button class="add-btn" onclick="openModal()">+</button>
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" id="emptyState">
+        <div class="fox-icon">
+            <svg viewBox="0 0 100 100">
+                <path d="M20,70 Q30,40 50,50 Q70,40 80,70 L75,85 Q50,75 25,85 Z M35,45 L30,30 L40,40 M65,45 L70,30 L60,40"/>
+            </svg>
+        </div>
+        <div class="empty-message">進行中のチャートはありません</div>
+        <button class="add-chart-btn" onclick="openModal()">チャートを追加</button>
+    </div>
+
+    <!-- Chart List -->
+    <div class="chart-list" id="chartList"></div>
+
+    <!-- Chart View -->
+    <div class="chart-view" id="chartView">
+        <div class="chart-header">
+            <button class="back-btn" onclick="closeChart()">←</button>
+            <div class="chart-title" id="chartViewTitle"></div>
+            <div>
+                <button class="share-btn" onclick="shareChart()">↑</button>
+                <button class="menu-dots">⋮</button>
+            </div>
+        </div>
+        <div class="chart-info">
+            <div class="info-row">
+                <div class="info-item">📅 <span id="dateRange"></span></div>
+                <div class="info-item">📊 <span id="totalPages"></span></div>
+            </div>
+            <div class="info-row">
+                <div class="info-item">⏱ <span id="daysLeft"></span></div>
+                <div class="info-item">✓ <span id="completed"></span></div>
+                <div class="info-item">📈 <span id="remaining"></span></div>
+            </div>
+        </div>
+        <div class="chart-container">
+            <img id="chartBg" class="chart-background" style="display: none;">
+            <canvas id="progressChart"></canvas>
+        </div>
+        <div class="daily-target">
+            <div class="target-label">期日までに終わらせるためには</div>
+            <div>
+                <span class="target-value" id="dailyTarget">0</span>
+                <span class="target-unit" id="dailyUnit">問</span>
+            </div>
+        </div>
+        <div class="scroll-hint">画面をスクロールして記録をはじめましょう！</div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="back-btn" onclick="closeModal()">←</button>
+                <div class="modal-title">新規チャート</div>
+                <button class="range-toggle">範囲で指定する</button>
+            </div>
+            <div class="form-section">
+                <div class="form-group">
+                    <label class="form-label">チャート名</label>
+                    <input type="text" class="form-input" id="chartName" placeholder="例: TOEIC単語帳">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">終わらせたい期日</label>
+                    <input type="date" class="form-input" id="deadline">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">終わらせたいページ数を入力</label>
+                    <input type="number" class="form-input" id="pageCount" placeholder="例: 300">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">単位</label>
+                    <button class="unit-selector" onclick="toggleUnitDropdown()">
+                        <span id="selectedUnit">ページ</span>
+                    </button>
+                    <div class="unit-dropdown" id="unitDropdown">
+                        <div class="unit-option" onclick="selectUnit('ページ')">ページ</div>
+                        <div class="unit-option" onclick="selectUnit('問')">問</div>
+                        <div class="unit-option" onclick="selectUnit('ユニット')">ユニット</div>
+                        <div class="unit-option" onclick="selectUnit('カスタム')">カスタム</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">背景画像 (オプション)</label>
+                    <input type="file" id="bgImageInput" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
+                    <div class="image-upload" onclick="document.getElementById('bgImageInput').click()">
+                        <div id="uploadText">📷 画像をアップロード</div>
+                        <img id="imagePreview" class="image-preview" style="display: none;">
+                    </div>
+                </div>
+            </div>
+            <button class="next-btn" onclick="createChart()">次へ</button>
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav">
+        <button class="nav-btn active" onclick="showHome()">🏠</button>
+        <button class="nav-btn">⚽</button>
+        <button class="nav-btn">👥</button>
+    </div>
+
+    <script>
+        let charts = JSON.parse(localStorage.getItem('vulpeCharts')) || [];
+        let currentChart = null;
+        let uploadedImage = null;
+        let selectedUnit = 'ページ';
+
+        function openModal() {
+            document.getElementById('modal').style.display = 'block';
+            // Set default date to 7 days from now
+            const defaultDate = new Date();
+            defaultDate.setDate(defaultDate.getDate() + 7);
+            document.getElementById('deadline').value = defaultDate.toISOString().split('T')[0];
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+            resetForm();
+        }
+
+        function resetForm() {
+            document.getElementById('chartName').value = '';
+            document.getElementById('pageCount').value = '';
+            document.getElementById('imagePreview').style.display = 'none';
+            document.getElementById('uploadText').style.display = 'block';
+            uploadedImage = null;
+        }
+
+        function toggleUnitDropdown() {
+            const dropdown = document.getElementById('unitDropdown');
+            dropdown.classList.toggle('active');
+        }
+
+        function selectUnit(unit) {
+            selectedUnit = unit;
+            document.getElementById('selectedUnit').textContent = unit;
+            toggleUnitDropdown();
+        }
+
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    uploadedImage = e.target.result;
+                    document.getElementById('imagePreview').src = uploadedImage;
+                    document.getElementById('imagePreview').style.display = 'block';
+                    document.getElementById('uploadText').style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function createChart() {
+            const name = document.getElementById('chartName').value;
+            const deadline = document.getElementById('deadline').value;
+            const pageCount = parseInt(document.getElementById('pageCount').value);
+
+            if (!name || !deadline || !pageCount) {
+                alert('すべての項目を入力してください');
+                return;
+            }
+
+            const chart = {
+                id: Date.now(),
+                name: name,
+                deadline: deadline,
+                total: pageCount,
+                completed: 0,
+                unit: selectedUnit,
+                bgImage: uploadedImage,
+                createdAt: new Date().toISOString(),
+                history: []
+            };
+
+            charts.push(chart);
+            localStorage.setItem('vulpeCharts', JSON.stringify(charts));
+            closeModal();
+            showChart(chart.id);
+        }
+
+        function showChart(chartId) {
+            currentChart = charts.find(c => c.id === chartId);
+            if (!currentChart) return;
+
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('chartList').style.display = 'none';
+            document.getElementById('chartView').style.display = 'block';
+
+            // Update chart info
+            document.getElementById('chartViewTitle').textContent = currentChart.name;
+            
+            const startDate = new Date(currentChart.createdAt);
+            const endDate = new Date(currentChart.deadline);
+            const today = new Date();
+            const daysLeft = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+            const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+            
+            document.getElementById('dateRange').textContent = 
+                `${startDate.getFullYear()}年${startDate.getMonth()+1}月${startDate.getDate()}日 ~ ${endDate.getMonth()+1}月${endDate.getDate()}日`;
+            document.getElementById('totalPages').textContent = `${currentChart.total}${currentChart.unit}`;
+            document.getElementById('daysLeft').textContent = `あと${daysLeft}日`;
+            document.getElementById('completed').textContent = `完了 ${currentChart.completed}`;
+            document.getElementById('remaining').textContent = `残り ${currentChart.total - currentChart.completed}`;
+            
+            const dailyTarget = daysLeft > 0 ? Math.ceil((currentChart.total - currentChart.completed) / daysLeft) : 0;
+            document.getElementById('dailyTarget').textContent = dailyTarget;
+            document.getElementById('dailyUnit').textContent = currentChart.unit;
+
+            // Set background image
+            if (currentChart.bgImage) {
+                document.getElementById('chartBg').src = currentChart.bgImage;
+                document.getElementById('chartBg').style.display = 'block';
+            } else {
+                document.getElementById('chartBg').style.display = 'none';
+            }
+
+            // Draw chart
+            drawChart(currentChart, totalDays, daysLeft);
+        }
+
+        function drawChart(chart, totalDays, daysLeft) {
+            const canvas = document.getElementById('progressChart');
+            const ctx = canvas.getContext('2d');
+            
+            // Set canvas size
+            canvas.width = canvas.offsetWidth * 2;
+            canvas.height = canvas.offsetHeight * 2;
+            ctx.scale(2, 2);
+
+            const width = canvas.width / 2;
+            const height = canvas.height / 2;
+            const padding = 60;
+            const graphWidth = width - padding * 2;
+            const graphHeight = height - padding * 2;
+
+            // Clear canvas
+            ctx.clearRect(0, 0, width, height);
+
+            // Draw grid lines
+            ctx.strokeStyle = '#3a3a3a';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 5; i++) {
+                const y = padding + (graphHeight / 5) * i;
+                ctx.beginPath();
+                ctx.moveTo(padding, y);
+                ctx.lineTo(width - padding, y);
+                ctx.stroke();
+
+                // Y-axis labels
+                const value = Math.round(chart.total - (chart.total / 5) * i);
+                ctx.fillStyle = '#9ca3af';
+                ctx.font = '12px sans-serif';
+                ctx.textAlign = 'right';
+                ctx.fillText(value.toString(), padding - 10, y + 5);
+            }
+
+            // Calculate ideal line
+            const startDate = new Date(chart.createdAt);
+            const endDate = new Date(chart.deadline);
+            const today = new Date();
+            
+            // Draw ideal progress line (dashed)
+            ctx.strokeStyle = '#6b7280';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(width - padding, height - padding);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Draw actual progress line
+            if (chart.history.length > 0) {
+                ctx.strokeStyle = '#4ade80';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                
+                chart.history.forEach((point, index) => {
+                    const pointDate = new Date(point.date);
+                    const daysPassed = Math.ceil((pointDate - startDate) / (1000 * 60 * 60 * 24));
+                    const x = padding + (graphWidth * daysPassed / totalDays);
+                    const y = height - padding - (graphHeight * (chart.total - point.remaining) / chart.total);
+                    
+                    if (index === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                });
+                ctx.stroke();
+            }
+
+            // Draw current point
+            const daysPassed = Math.ceil((today - startDate) / (1000 * 60 * 60 * 24));
+            const currentX = padding + (graphWidth * daysPassed / totalDays);
+            const currentY = height - padding - (graphHeight * chart.completed / chart.total);
+            
+            ctx.fillStyle = '#4ade80';
+            ctx.beginPath();
+            ctx.arc(currentX, currentY, 6, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw green progress bar at top
+            ctx.fillStyle = '#4ade80';
+            ctx.fillRect(padding, padding - 10, (graphWidth * chart.completed / chart.total), 4);
+
+            // Draw X-axis labels (dates)
+            ctx.fillStyle = '#9ca3af';
+            ctx.font = '12px sans-serif';
+            ctx.textAlign = 'center';
+            
+            const datePoints = 6;
+            for (let i = 0; i < datePoints; i++) {
+                const date = new Date(startDate);
+                date.setDate(date.getDate() + (totalDays / (datePoints - 1)) * i);
+                const x = padding + (graphWidth / (datePoints - 1)) * i;
+                const label = `${date.getMonth() + 1}/${date.getDate()}`;
+                ctx.fillText(label, x, height - padding + 20);
+            }
+
+            // Label
+            ctx.fillStyle = '#9ca3af';
+            ctx.font = '14px sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText('(残り問数)', 10, 30);
+        }
+
+        function closeChart() {
+            document.getElementById('chartView').style.display = 'none';
+            showHome();
+        }
+
+        function shareChart() {
+            alert('チャートのスクリーンショットが自動で添付されます');
+        }
+
+        function showHome() {
+            document.getElementById('chartView').style.display = 'none';
+            document.getElementById('chartList').style.display = 'none';
+            
+            if (charts.length === 0) {
+                document.getElementById('emptyState').style.display = 'flex';
+            } else {
+                showChartList();
+            }
+        }
+
+        function showChartList() {
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('chartView').style.display = 'none';
+            const listEl = document.getElementById('chartList');
+            listEl.style.display = 'block';
+            
+            listEl.innerHTML = '';
+            charts.forEach(chart => {
+                const progress = (chart.completed / chart.total) * 100;
+                const endDate = new Date(chart.deadline);
+                const today = new Date();
+                const daysLeft = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+                
+                const card = document.createElement('div');
+                card.className = 'chart-card';
+                card.onclick = () => showChart(chart.id);
+                card.innerHTML = `
+                    <div class="card-title">${chart.name}</div>
+                    <div class="card-info">
+                        期日: ${endDate.getMonth()+1}月${endDate.getDate()}日 (あと${daysLeft}日) • 
+                        ${chart.completed}/${chart.total}${chart.unit}
+                    </div>
+                    <div class="card-progress">
+                        <div class="card-progress-bar" style="width: ${progress}%"></div>
+                    </div>
+                `;
+                listEl.appendChild(card);
+            });
+        }
+
+        function toggleMenu() {
+            alert('メニュー機能は開発中です');
+        }
+
+        // Initialize
+        if (charts.length > 0) {
+            showChartList();
+        }
+    </script>
+</body>
+</html>
