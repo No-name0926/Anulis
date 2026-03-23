@@ -10,65 +10,92 @@
         :root {
             --primary: #0070bc;
             --accent: #00c6ff;
-            --bg: #f2f7fb;
-            --card: #ffffff;
+            --bg: #f5f8fa;
             --text: #333;
+            --gray: #888;
+            --light-gray: #e0e0e0;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: -apple-system, "Hiragino Sans", sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
 
-        /* --- ホーム（一覧）画面 --- */
-        #homeView { height: 100vh; overflow-y: auto; padding: 60px 20px 100px; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-        .logo { font-size: 26px; font-weight: 900; color: var(--primary); letter-spacing: -0.5px; }
-        .add-btn { width: 48px; height: 48px; border-radius: 16px; background: var(--accent); color: white; border: none; font-size: 28px; cursor: pointer; box-shadow: 0 4px 15px rgba(0,198,255,0.3); }
+        /* --- 一覧画面 --- */
+        #homeView { height: 100vh; overflow-y: auto; padding: 50px 15px 100px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .logo { font-size: 24px; font-weight: 900; color: var(--primary); }
+        .add-btn { width: 40px; height: 40px; border-radius: 12px; background: var(--accent); color: white; border: none; font-size: 24px; cursor: pointer; }
 
-        .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .card { background: white; border-radius: 22px; padding: 18px; box-shadow: 0 8px 20px rgba(0,0,0,0.04); border: 1px solid rgba(255,255,255,0.8); cursor: pointer; transition: transform 0.2s; }
-        .card:active { transform: scale(0.96); }
-        .card-t { font-size: 14px; font-weight: 700; height: 3.2em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; margin-bottom: 8px; }
-        .bar-bg { height: 6px; background: #eee; border-radius: 3px; overflow: hidden; }
-        .bar-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent)); transition: width 0.6s ease; }
+        .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .card { background: white; border-radius: 18px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); cursor: pointer; }
+        .card-t { font-size: 13px; font-weight: 700; height: 3.2em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; margin-bottom: 5px; }
+        .bar-bg { height: 4px; background: #eee; border-radius: 2px; overflow: hidden; }
+        .bar-fill { height: 100%; background: var(--primary); transition: width 0.6s ease; }
 
         /* --- 詳細（スナップ）画面 --- */
-        #detailView { display: none; position: fixed; inset: 0; background: white; z-index: 1000; }
+        #detailView { display: none; position: fixed; inset: 0; background: var(--bg); z-index: 1000; }
         .snap-x { display: flex; overflow-x: scroll; scroll-snap-type: x mandatory; width: 100vw; height: 100vh; scroll-behavior: smooth; }
         .snap-x::-webkit-scrollbar { display: none; }
 
-        .chart-container { min-width: 100vw; height: 100vh; scroll-snap-align: start; overflow-y: scroll; scroll-snap-type: y mandatory; }
-        .chart-container::-webkit-scrollbar { display: none; }
+        .chart-container { 
+            min-width: 100vw; height: 100vh; scroll-snap-align: start; 
+            display: flex; flex-direction: column; /* 縦並び */
+            padding: 40px 0 0; /* 上部スペース */
+        }
 
-        /* セクション：グラフ（上） */
-        .section-graph { height: 100vh; scroll-snap-align: start; display: flex; flex-direction: column; padding: 70px 20px 30px; }
-        /* セクション：カレンダー（下） */
-        .section-cal { height: 100vh; scroll-snap-align: start; background: var(--bg); padding: 80px 20px; }
+        .back-btn { position: fixed; top: 45px; left: 15px; z-index: 1100; font-size: 20px; border: none; background: none; color: var(--gray); cursor: pointer; }
 
-        .back-btn { position: fixed; top: 50px; left: 20px; z-index: 1100; font-size: 28px; border: none; background: none; color: #aaa; cursor: pointer; }
+        /* セクション：グラフ（上部・コンパクト） */
+        .section-graph { 
+            height: 35vh; /* 縦幅を狭く */
+            background: white;
+            padding: 20px 15px 10px;
+            border-bottom: 1px solid #eee;
+            display: flex; flex-direction: column;
+        }
+        .graph-area { flex: 1; position: relative; }
 
-        /* グラフエリア */
-        .graph-area { flex: 1; position: relative; margin-bottom: 15px; }
-        .advice-card { background: #eaf6ff; padding: 18px; border-radius: 20px; font-size: 13px; color: var(--primary); font-weight: 600; line-height: 1.6; }
+        /* セクション：カレンダー・記録（下部） */
+        .section-cal-record { 
+            flex: 1; /* 残りのスペース */
+            overflow-y: auto; /* 必要ならスクロール */
+            padding: 15px;
+        }
 
-        /* カレンダーエリア */
-        .cal-box { background: white; border-radius: 25px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-        .cal-head { display: flex; justify-content: space-between; font-weight: 800; margin-bottom: 20px; color: var(--primary); }
-        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; text-align: center; }
-        .d-cell { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 14px; position: relative; }
-        .d-cell.active-day { background: #f0f7ff; color: var(--primary); font-weight: bold; }
-        .d-cell.selected { background: var(--primary) !important; color: white !important; }
-        .d-cell.has-data::after { content: ''; position: absolute; bottom: 5px; width: 4px; height: 4px; background: var(--accent); border-radius: 50%; }
+        /* カレンダーUI再現 */
+        .cal-box { background: white; border-radius: 15px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+        .cal-head { text-align: center; font-weight: bold; margin-bottom: 15px; color: var(--primary); font-size: 14px; }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
+        .d-head { font-size: 10px; color: var(--gray); font-weight: bold; padding-bottom: 5px; }
+        .d-cell { 
+            aspect-ratio: 1; display: flex; align-items: center; justify-content: center; 
+            border-radius: 50%; font-size: 12px; position: relative; color: #555;
+            cursor: pointer;
+        }
+        /* 当日の四角い囲み */
+        .d-cell.today { border: 1px solid var(--primary); border-radius: 4px; color: var(--primary); font-weight: bold; }
+        /* 選択時の青丸 */
+        .d-cell.selected { background: var(--primary) !important; color: white !important; border: none; }
+        /* 記録ありのドット */
+        .d-cell.has-data::after { 
+            content: ''; position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%);
+            width: 3px; height: 3px; background: var(--accent); border-radius: 50%; 
+        }
+        .d-cell.selected.has-data::after { background: white; }
 
-        .record-form { background: white; border-radius: 25px; padding: 25px; margin-top: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-        .input-wrap { display: flex; align-items: center; gap: 12px; margin-top: 15px; }
-        input { flex: 1; border: 2px solid #f0f0f0; padding: 15px; border-radius: 15px; font-size: 16px; outline: none; transition: border-color 0.3s; }
-        input:focus { border-color: var(--accent); }
-        .save-btn { background: var(--primary); color: white; border: none; padding: 15px 25px; border-radius: 15px; font-weight: bold; }
+        /* 記録フォーム */
+        .record-form { background: white; border-radius: 15px; padding: 15px; margin-top: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+        .date-label { font-size: 12px; color: var(--primary); font-weight: bold; margin-bottom: 10px; }
+        .input-wrap { display: flex; align-items: center; gap: 8px; }
+        input { flex: 1; border: 1px solid var(--light-gray); padding: 10px; border-radius: 8px; font-size: 14px; outline: none; }
+        .save-btn { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; font-size: 12px; cursor: pointer; }
 
-        /* 作成モーダル */
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 2000; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(8px); }
-        .modal-inner { background: white; width: 100%; max-width: 400px; border-radius: 30px; padding: 30px; animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        @keyframes pop { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+        /* 目安アドバイス */
+        .advice-text { font-size: 11px; color: var(--gray); text-align: center; margin-top: 15px; line-height: 1.5; }
+
+        /* モーダル */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 2000; align-items: center; justify-content: center; padding: 20px; }
+        .modal-inner { background: white; width: 100%; max-width: 350px; border-radius: 20px; padding: 25px; }
+        .modal input, .modal select { width: 100%; margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; }
     </style>
 </head>
 <body>
@@ -83,41 +110,29 @@
 
     <div id="detailView">
         <button class="back-btn" onclick="closeDetail()">✕</button>
-        <div class="snap-x" id="snapXContainer">
-            </div>
+        <div class="snap-x" id="snapXContainer"></div>
     </div>
 
     <div class="modal" id="createModal">
         <div class="modal-inner">
-            <h2 style="margin-bottom:20px; font-size:18px;">新しいペースメーカー</h2>
-            <div style="margin-bottom:15px">
-                <label style="font-size:12px; color:#999">教材名・目標</label>
-                <input type="text" id="m_name" placeholder="例: 数学I 青チャート" style="width:100%">
+            <h3 style="margin-bottom:15px; font-size:16px;">新規チャート</h3>
+            <input type="text" id="m_name" placeholder="教材名 (例: 単語帳)">
+            <input type="date" id="m_date">
+            <div style="display:flex; gap:5px">
+                <input type="number" id="m_total" placeholder="目標数">
+                <select id="m_unit" style="width:80px">
+                    <option>問</option><option>ページ</option>
+                </select>
             </div>
-            <div style="margin-bottom:15px">
-                <label style="font-size:12px; color:#999">完了期日</label>
-                <input type="date" id="m_date" style="width:100%">
-            </div>
-            <div style="display:flex; gap:10px">
-                <div style="flex:2">
-                    <label style="font-size:12px; color:#999">目標総数</label>
-                    <input type="number" id="m_total" placeholder="300">
-                </div>
-                <div style="flex:1">
-                    <label style="font-size:12px; color:#999">単位</label>
-                    <select id="m_unit" style="width:100%; padding:15px; border-radius:15px; border:2px solid #f0f0f0; background:white;">
-                        <option>問</option><option>ページ</option><option>章</option>
-                    </select>
-                </div>
-            </div>
-            <button class="add-btn" style="width:100%; margin-top:25px; font-size:16px;" onclick="addChart()">作成する</button>
-            <button onclick="closeModal()" style="width:100%; border:none; background:none; color:#bbb; margin-top:15px; font-size:14px;">キャンセル</button>
+            <button class="add-btn" style="width:100%; margin-top:15px; font-size:14px; height:40px;" onclick="addChart()">作成</button>
+            <button onclick="closeModal()" style="width:100%; border:none; background:none; color:#bbb; margin-top:10px; font-size:12px;">キャンセル</button>
         </div>
     </div>
 
     <script>
-        let charts = JSON.parse(localStorage.getItem('anulis_v5_data')) || [];
+        let charts = JSON.parse(localStorage.getItem('anulis_v6_data')) || [];
         let chartInstances = {};
+        const todayStr = new Date().toISOString().split('T')[0];
 
         function openModal() { document.getElementById('createModal').style.display = 'flex'; }
         function closeModal() { document.getElementById('createModal').style.display = 'none'; }
@@ -129,18 +144,17 @@
             const unit = document.getElementById('m_unit').value;
             if(!name || !date || !total) return;
 
-            const startStr = new Date().toISOString().split('T')[0];
             const newChart = {
                 id: 'id' + Date.now(),
                 name, deadline: date, total, unit,
-                startDate: startStr,
-                records: { [startStr]: 0 } // 初期値
+                startDate: todayStr,
+                records: { [todayStr]: 0 }
             };
             charts.push(newChart);
             save(); renderHome(); closeModal();
         }
 
-        function save() { localStorage.setItem('anulis_v5_data', JSON.stringify(charts)); }
+        function save() { localStorage.setItem('anulis_v6_data', JSON.stringify(charts)); }
 
         function renderHome() {
             const grid = document.getElementById('chartGrid');
@@ -152,7 +166,6 @@
                 grid.innerHTML += `
                     <div class="card" onclick="openDetail('${c.id}')">
                         <div class="card-t">${c.name}</div>
-                        <div style="font-size:10px; color:#999; margin-bottom:5px;">進捗: ${perc}%</div>
                         <div class="bar-bg"><div class="bar-fill" style="width:${perc}%"></div></div>
                     </div>
                 `;
@@ -169,29 +182,27 @@
                 page.className = 'chart-container';
                 page.id = `view-${c.id}`;
                 page.innerHTML = `
-                    <section class="section-graph">
-                        <h2 style="font-size:22px; font-weight:900; margin-bottom:5px;">${c.name}</h2>
-                        <div style="font-size:12px; color:#999; margin-bottom:20px;">残り作業量の推移</div>
+                    <div class="section-graph">
+                        <div style="font-size:14px; font-weight:bold; text-align:center; margin-bottom:10px;">${c.name}</div>
                         <div class="graph-area"><canvas id="canvas-${c.id}"></canvas></div>
-                        <div class="advice-card" id="advice-${c.id}">計算中...</div>
-                        <div style="text-align:center; margin-top:25px; color:#ddd; font-size:11px;">記録は下にスクロール ↓</div>
-                    </section>
-                    <section class="section-cal">
+                    </div>
+                    <div class="section-cal-record">
                         <div class="cal-box">
-                            <div class="cal-head"><div>${new Date().getFullYear()}年 ${new Date().getMonth()+1}月</div></div>
+                            <div class="cal-head">${new Date().getMonth()+1}月</div>
                             <div class="cal-grid" id="grid-${c.id}"></div>
                         </div>
                         <div class="record-form">
-                            <div id="label-${c.id}" style="font-weight:bold; color:var(--primary);">日付を選択してください</div>
+                            <div id="label-${c.id}" class="date-label">日付を選択</div>
                             <div class="input-wrap">
-                                <input type="number" id="input-${c.id}" placeholder="現在の累計数">
-                                <span style="font-weight:bold">${c.unit}</span>
+                                <span style="font-size:12px; color:#999">ここまで</span>
+                                <input type="number" id="input-${c.id}" placeholder="累計">
+                                <span style="font-size:12px; font-weight:bold">${c.unit}</span>
                                 <button class="save-btn" onclick="saveProgress('${c.id}')">保存</button>
                             </div>
-                            <div style="font-size:11px; color:#aaa; margin-top:10px;">※その日の「最終的な累計数」を入力してください。</div>
                         </div>
-                        <button onclick="deleteChart('${c.id}')" style="width:100%; margin-top:30px; border:none; background:none; color:#ff7675; font-size:12px;">チャートを削除する</button>
-                    </section>
+                        <div class="advice-text" id="advice-${c.id}"></div>
+                        <button onclick="deleteChart('${c.id}')" style="width:100%; margin-top:20px; border:none; background:none; color:#ccc; font-size:10px;">削除</button>
+                    </div>
                 `;
                 container.appendChild(page);
                 renderGraph(c);
@@ -207,66 +218,73 @@
             const sortedDates = Object.keys(c.records).sort();
             const latestVal = c.records[sortedDates[sortedDates.length-1]];
             
-            // 理想線データ
-            const ideal = [c.total, 0];
-            // 実績データ (右下がり: 残り量)
-            const actualPoints = [
-                { x: '開始', y: c.total },
-                { x: '現在', y: Math.max(0, c.total - latestVal) }
-            ];
-
+            // 画像風の簡易データセット (開始・現在・目標)
             if(chartInstances[c.id]) chartInstances[c.id].destroy();
             chartInstances[c.id] = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: ['開始', '目標期日'],
+                    labels: ['開始', '現在', '目標'],
                     datasets: [{
-                        data: [{x:'開始', y:c.total}, {x:'現在', y:c.total - latestVal}],
+                        // 実績線 (右下がり)
+                        data: [
+                            {x:'開始', y:c.total}, 
+                            {x:'現在', y:Math.max(0, c.total - latestVal)}
+                        ],
                         borderColor: '#0070bc',
-                        backgroundColor: 'rgba(0,112,188,0.1)',
-                        fill: true, tension: 0.3, borderWidth: 4, pointRadius: 6, pointBackgroundColor: '#fff', pointBorderWidth: 3
+                        backgroundColor: 'rgba(0,112,188,0.05)',
+                        fill: true, tension: 0.1, borderWidth: 2, pointRadius: 4, pointBackgroundColor: '#fff', pointBorderWidth: 2
                     }, {
-                        data: [{x:'開始', y:c.total}, {x:'目標期日', y:0}],
-                        borderColor: '#ddd', borderDash: [6, 6], fill: false, pointRadius: 0
+                        // 理想線 (点線)
+                        data: [{x:'開始', y:c.total}, {x:'目標', y:0}],
+                        borderColor: '#e0e0e0', borderDash: [4, 4], fill: false, pointRadius: 0, borderWidth: 1
                     }]
                 },
                 options: {
                     responsive: true, maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        x: { type: 'category', grid: { display: false } },
-                        y: { beginAtZero: true, max: c.total, ticks: { font: { size: 10 } } }
+                        x: { type: 'category', grid: { display: false }, ticks: { font: { size: 9 }, color: '#999' } },
+                        y: { beginAtZero: true, max: c.total, grid: { color: '#f5f5f5' }, ticks: { font: { size: 8 }, color: '#ccc', stepSize: c.total / 5 } }
                     }
                 }
             });
 
-            // アドバイス
-            const remain = c.total - latestVal;
+            // アドバイス更新
+            const remain = Math.max(0, c.total - latestVal);
             const days = Math.ceil((new Date(c.deadline) - new Date()) / 86400000);
             const pace = days > 0 ? Math.ceil(remain / days) : remain;
             document.getElementById(`advice-${c.id}`).innerHTML = 
-                remain > 0 ? `残り ${remain}${c.unit}あります。期日まであと${Math.max(0, days)}日です。<br>今日から1日あたり「${pace}${c.unit}」ずつ進めましょう！` : "🎉 目標をすべて達成しました！";
+                remain > 0 ? `残り ${remain}${c.unit} / 期日まであと${Math.max(0, days)}日<br>完了には1日平均「${pace}${c.unit}」が必要です。` : "🎉 目標達成！";
         }
 
         function renderCal(c) {
             const grid = document.getElementById(`grid-${c.id}`);
             grid.innerHTML = '';
             const now = new Date();
-            const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-            const todayStr = now.toISOString().split('T')[0];
+            const year = now.getFullYear();
+            const month = now.getMonth();
+            const lastDay = new Date(year, month + 1, 0).getDate();
+
+            // 曜日ヘッダー
+            ['日','月','火','水','木','金','土'].forEach(h => {
+                grid.innerHTML += `<div class="d-head">${h}</div>`;
+            });
+
+            // 1日の曜日までの空白
+            const firstDayWin = new Date(year, month, 1).getDay();
+            for(let i=0; i<firstDayWin; i++) { grid.innerHTML += '<div></div>'; }
 
             for(let i=1; i<=lastDay; i++) {
-                const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
+                const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
                 const cell = document.createElement('div');
                 cell.className = 'd-cell';
-                if(dateStr === todayStr) cell.classList.add('active-day');
+                if(dateStr === todayStr) cell.classList.add('today');
                 if(c.records[dateStr] !== undefined) cell.classList.add('has-data');
                 cell.textContent = i;
                 cell.onclick = () => {
-                    const all = grid.querySelectorAll('.d-cell');
-                    all.forEach(a => a.classList.remove('selected'));
+                    grid.querySelectorAll('.d-cell').forEach(a => a.classList.remove('selected'));
                     cell.classList.add('selected');
-                    document.getElementById(`label-${c.id}`).innerText = `${dateStr} の記録を更新`;
+                    document.getElementById(`label-${c.id}`).innerText = `${month+1}/${i} の累計進捗`;
                     document.getElementById(`input-${c.id}`).value = c.records[dateStr] || "";
                     document.getElementById(`input-${c.id}`).dataset.selected = dateStr;
                 };
@@ -277,23 +295,25 @@
         function saveProgress(id) {
             const input = document.getElementById(`input-${id}`);
             const dateStr = input.dataset.selected;
-            if(!dateStr) return alert("カレンダーから日付を選択してください");
+            if(!dateStr) return;
             
-            const val = parseInt(input.value);
+            let val = parseInt(input.value);
+            if(isNaN(val) || val < 0) val = 0;
+            
             const c = charts.find(x => x.id === id);
+            if(val > c.total) val = c.total; // 目標を超えない
+
             c.records[dateStr] = val;
             save();
             renderGraph(c);
             renderCal(c);
-            confetti({ particleCount: 50, spread: 70, origin: { y: 0.9 } });
+            confetti({ particleCount: 30, spread: 50, origin: { y: 0.8 } });
         }
 
         function deleteChart(id) {
-            if(!confirm("このチャートを削除してもよろしいですか？")) return;
+            if(!confirm("削除しますか？")) return;
             charts = charts.filter(x => x.id !== id);
-            save();
-            closeDetail();
-            renderHome();
+            save(); closeDetail(); renderHome();
         }
 
         renderHome();
