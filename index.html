@@ -23,7 +23,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 50px 20px 15px 20px;
+            padding: 44px 16px 10px 16px;
             background: transparent;
             position: relative;
             z-index: 100;
@@ -40,19 +40,19 @@
             backdrop-filter: blur(10px);
             border: none;
             color: white;
-            font-size: 20px;
+            font-size: 18px;
             cursor: pointer;
-            padding: 10px;
-            border-radius: 8px;
-            width: 40px;
-            height: 40px;
+            padding: 8px;
+            border-radius: 10px;
+            width: 36px;
+            height: 36px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
         .logo {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: 600;
             letter-spacing: 0.5px;
         }
@@ -277,17 +277,19 @@
             bottom: 0;
             background: #000000;
             z-index: 200;
+            overflow-x: hidden;
         }
 
         .chart-view-inner {
             height: 100vh;
             overflow-y: auto;
+            overflow-x: hidden;
             position: relative;
             padding-bottom: 50px;
         }
 
         .chart-header {
-            padding: 50px 20px 15px 20px;
+            padding: 44px 16px 10px 16px;
             background: transparent;
             display: flex;
             justify-content: space-between;
@@ -300,7 +302,7 @@
         }
 
         .chart-title {
-            font-size: 17px;
+            font-size: 15px;
             font-weight: 600;
             flex: 1;
             text-align: center;
@@ -312,12 +314,12 @@
             backdrop-filter: blur(10px);
             border: none;
             color: white;
-            font-size: 20px;
+            font-size: 17px;
             cursor: pointer;
             padding: 10px;
-            border-radius: 8px;
-            width: 40px;
-            height: 40px;
+            border-radius: 10px;
+            width: 34px;
+            height: 34px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -335,9 +337,9 @@
         }
 
         .info-text {
-            font-size: 13px;
+            font-size: 11px;
             color: rgba(255,255,255,0.9);
-            line-height: 1.6;
+            line-height: 1.5;
         }
 
         .chart-container {
@@ -347,6 +349,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            overflow: hidden;
         }
 
         .chart-background {
@@ -355,9 +358,11 @@
             left: 0;
             right: 0;
             bottom: 0;
+            width: 100%;
+            height: 100%;
             object-fit: cover;
+            object-position: center;
             opacity: 0.6;
-            transform: scale(1.1);
         }
 
         .chart-canvas-wrapper {
@@ -386,19 +391,19 @@
         }
 
         .target-label {
-            font-size: 13px;
+            font-size: 11px;
             color: rgba(255,255,255,0.9);
             margin-bottom: 8px;
         }
 
         .target-value {
-            font-size: 40px;
+            font-size: 30px;
             font-weight: 700;
             display: inline;
         }
 
         .target-unit {
-            font-size: 20px;
+            font-size: 16px;
             color: rgba(255,255,255,0.9);
             margin-left: 5px;
         }
@@ -950,6 +955,7 @@
 
             const padding = size * 0.12;
             const graphSize = size - padding * 2;
+            const safeTotalDays = Math.max(totalDays, 1);
 
             ctx.clearRect(0, 0, size, size);
 
@@ -990,26 +996,26 @@
                 ctx.strokeStyle = '#10b981';
                 ctx.lineWidth = 3;
                 ctx.beginPath();
+                ctx.moveTo(padding, padding);
                 
                 chart.history.forEach((point, index) => {
                     const pointDate = new Date(point.date);
                     const daysPassed = Math.ceil((pointDate - startDate) / (1000 * 60 * 60 * 24));
-                    const x = padding + (graphSize * daysPassed / totalDays);
-                    const y = size - padding - (graphSize * (chart.total - point.remaining) / chart.total);
+                    const clampedDays = Math.max(0, Math.min(daysPassed, safeTotalDays));
+                    const x = padding + (graphSize * clampedDays / safeTotalDays);
+                    const y = size - padding - (graphSize * (point.remaining / chart.total));
                     
-                    if (index === 0) {
-                        ctx.moveTo(x, y);
-                    } else {
-                        ctx.lineTo(x, y);
-                    }
+                    ctx.lineTo(x, y);
                 });
                 ctx.stroke();
             }
 
             // Current point
             const daysPassed = Math.ceil((today - startDate) / (1000 * 60 * 60 * 24));
-            const currentX = padding + (graphSize * daysPassed / totalDays);
-            const currentY = size - padding - (graphSize * chart.completed / chart.total);
+            const clampedToday = Math.max(0, Math.min(daysPassed, safeTotalDays));
+            const currentX = padding + (graphSize * clampedToday / safeTotalDays);
+            const remainingNow = Math.max(0, chart.total - chart.completed);
+            const currentY = size - padding - (graphSize * remainingNow / chart.total);
             
             ctx.fillStyle = '#10b981';
             ctx.beginPath();
@@ -1029,7 +1035,7 @@
             const datePoints = 6;
             for (let i = 0; i < datePoints; i++) {
                 const date = new Date(startDate);
-                date.setDate(date.getDate() + (totalDays / (datePoints - 1)) * i);
+                date.setDate(date.getDate() + (safeTotalDays / (datePoints - 1)) * i);
                 const x = padding + (graphSize / (datePoints - 1)) * i;
                 const label = `${date.getMonth() + 1}/${date.getDate()}`;
                 ctx.fillText(label, x, size - padding + 25);
@@ -1129,6 +1135,7 @@
             drawChart(currentChart, totalDays, daysLeft);
             renderCalendar();
         }
+
 
         function closeChart() {
             document.getElementById('chartView').style.display = 'none';
