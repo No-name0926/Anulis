@@ -283,6 +283,7 @@
             height: 100vh;
             overflow-y: auto;
             position: relative;
+            padding-bottom: 50px;
         }
 
         .chart-header {
@@ -411,6 +412,155 @@
             color: rgba(255,255,255,0.6);
             font-size: 12px;
             z-index: 10;
+        }
+
+        .record-section {
+            position: relative;
+            z-index: 5;
+            margin: 0 14px 110px 14px;
+            border-radius: 18px;
+            background: rgba(7, 12, 28, 0.92);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(16px);
+            padding: 18px;
+            color: #d9deea;
+        }
+
+        .calendar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+        }
+
+        .calendar-month {
+            font-size: 38px;
+            font-weight: 600;
+            color: #f2f5ff;
+            letter-spacing: 0.02em;
+        }
+
+        .calendar-nav {
+            border: none;
+            background: transparent;
+            color: #f2f5ff;
+            font-size: 34px;
+            line-height: 1;
+            cursor: pointer;
+            padding: 2px 8px;
+        }
+
+        .weekday-row,
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            text-align: center;
+        }
+
+        .weekday-row {
+            color: #8d95a9;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        .weekday-cell,
+        .day-cell {
+            padding: 10px 0;
+        }
+
+        .day-cell {
+            border: none;
+            background: transparent;
+            color: #d2d7e4;
+            font-size: 32px;
+            font-weight: 500;
+            border-radius: 50%;
+            width: min(64px, 9vw);
+            height: min(64px, 9vw);
+            margin: 4px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .day-cell.other-month {
+            color: #656f86;
+        }
+
+        .day-cell.selected {
+            background: #7689f0;
+            color: #f6f8ff;
+            box-shadow: 0 0 0 4px rgba(118, 137, 240, 0.2);
+        }
+
+        .record-row {
+            margin-top: 18px;
+            border-top: 1px solid rgba(191, 202, 235, 0.28);
+            border-bottom: 1px solid rgba(191, 202, 235, 0.28);
+            padding: 14px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .record-label {
+            font-size: 20px;
+            color: #dce2f1;
+        }
+
+        .record-input-wrap {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+
+        .record-input {
+            width: 120px;
+            text-align: right;
+            border: none;
+            background: transparent;
+            color: #f5f7ff;
+            font-size: 42px;
+            font-weight: 500;
+            outline: none;
+        }
+
+        .record-input-unit {
+            color: #cfd5e4;
+            font-size: 22px;
+        }
+
+        .memo-input {
+            width: 100%;
+            margin-top: 20px;
+            min-height: 52px;
+            border: none;
+            border-bottom: 1px solid rgba(191, 202, 235, 0.28);
+            background: transparent;
+            color: #e6eaf5;
+            font-size: 20px;
+            padding: 8px 0 10px;
+            resize: vertical;
+            outline: none;
+        }
+
+        .memo-input::placeholder {
+            color: #7c8498;
+        }
+
+        .save-record-btn {
+            width: 100%;
+            margin-top: 20px;
+            border: none;
+            border-radius: 999px;
+            background: rgba(175, 182, 198, 0.22);
+            color: #ced4e3;
+            font-size: 28px;
+            font-weight: 600;
+            padding: 15px 0;
+            cursor: pointer;
         }
 
         /* Bottom Navigation */
@@ -547,6 +697,24 @@
                 </div>
             </div>
             <div class="scroll-hint">画面をスクロールして記録をはじめましょう！</div>
+            <div class="record-section">
+                <div class="calendar-header">
+                    <button class="calendar-nav" onclick="changeCalendarMonth(-1)">‹</button>
+                    <div class="calendar-month" id="calendarMonthLabel">2026年3月</div>
+                    <button class="calendar-nav" onclick="changeCalendarMonth(1)">›</button>
+                </div>
+                <div class="weekday-row" id="weekdayRow"></div>
+                <div class="calendar-grid" id="calendarGrid"></div>
+                <div class="record-row">
+                    <div class="record-label" id="recordLabel">3月23日の成果：</div>
+                    <div class="record-input-wrap">
+                        <input type="number" min="0" class="record-input" id="dailyAchievement" value="0">
+                        <span class="record-input-unit" id="recordUnit">問</span>
+                    </div>
+                </div>
+                <textarea class="memo-input" id="dailyMemo" placeholder="メモを追加"></textarea>
+                <button class="save-record-btn" onclick="saveDailyRecord()">保存</button>
+            </div>
         </div>
     </div>
 
@@ -608,7 +776,50 @@
         let currentChart = null;
         let uploadedImage = null;
         let selectedUnit = 'ページ';
+        let calendarViewDate = new Date();
+        let selectedRecordDate = new Date();
+        const weekdayLabels = ['日', '月', '火', '水', '木', '金', '土'];
 
+        function toLocalDateKey(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function parseDateKey(dateKey) {
+            const [year, month, day] = dateKey.split('-').map(Number);
+            return new Date(year, month - 1, day);
+        }
+
+        function formatDateJa(date) {
+            return `${date.getMonth() + 1}月${date.getDate()}日`;
+        }
+
+        function getRecordForDate(chart, dateKey) {
+            return chart.records?.[dateKey] || { amount: 0, memo: '' };
+        }
+
+        function recalculateChartProgress(chart) {
+            const recordEntries = Object.entries(chart.records || {})
+                .sort(([a], [b]) => a.localeCompare(b));
+            let completed = 0;
+            chart.history = [];
+
+            recordEntries.forEach(([date, record]) => {
+                completed += Number(record.amount) || 0;
+                if (completed > chart.total) {
+                    completed = chart.total;
+                }
+                chart.history.push({
+                    date,
+                    remaining: Math.max(chart.total - completed, 0)
+                });
+            });
+
+            chart.completed = Math.max(0, Math.min(completed, chart.total));
+        }
+        
         function openModal() {
             document.getElementById('modal').style.display = 'block';
             const defaultDate = new Date();
@@ -673,7 +884,8 @@
                 unit: selectedUnit,
                 bgImage: uploadedImage,
                 createdAt: new Date().toISOString(),
-                history: []
+                history: [],
+                records: {}
             };
 
             charts.push(chart);
@@ -685,6 +897,10 @@
         function showChart(chartId) {
             currentChart = charts.find(c => c.id === chartId);
             if (!currentChart) return;
+            if (!currentChart.records) {
+                currentChart.records = {};
+            }
+            recalculateChartProgress(currentChart);
 
             document.getElementById('emptyState').style.display = 'none';
             document.getElementById('chartList').style.display = 'none';
@@ -706,6 +922,12 @@
             const dailyTarget = daysLeft > 0 ? Math.ceil((currentChart.total - currentChart.completed) / daysLeft) : 0;
             document.getElementById('dailyTarget').textContent = dailyTarget;
             document.getElementById('dailyUnit').textContent = currentChart.unit;
+            document.getElementById('recordUnit').textContent = currentChart.unit;
+
+            selectedRecordDate = new Date();
+            calendarViewDate = new Date(selectedRecordDate.getFullYear(), selectedRecordDate.getMonth(), 1);
+            renderCalendar();
+            loadSelectedDateRecord();
 
             if (currentChart.bgImage) {
                 document.getElementById('chartBg').src = currentChart.bgImage;
@@ -818,6 +1040,94 @@
             ctx.font = `${size * 0.032}px sans-serif`;
             ctx.textAlign = 'left';
             ctx.fillText(`(残り${chart.unit}数)`, padding, padding - 15);
+        }
+
+        function renderCalendar() {
+            if (!currentChart) return;
+            document.getElementById('calendarMonthLabel').textContent = `${calendarViewDate.getFullYear()}年${calendarViewDate.getMonth() + 1}月`;
+
+            const weekdayRow = document.getElementById('weekdayRow');
+            if (weekdayRow.children.length === 0) {
+                weekdayLabels.forEach(day => {
+                    const cell = document.createElement('div');
+                    cell.className = 'weekday-cell';
+                    cell.textContent = day;
+                    weekdayRow.appendChild(cell);
+                });
+            }
+
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+
+            const firstDay = new Date(calendarViewDate.getFullYear(), calendarViewDate.getMonth(), 1);
+            const startWeekday = firstDay.getDay();
+            const gridStart = new Date(firstDay);
+            gridStart.setDate(firstDay.getDate() - startWeekday);
+
+            for (let i = 0; i < 42; i++) {
+                const cellDate = new Date(gridStart);
+                cellDate.setDate(gridStart.getDate() + i);
+                const cellBtn = document.createElement('button');
+                cellBtn.className = 'day-cell';
+                cellBtn.textContent = cellDate.getDate();
+
+                if (cellDate.getMonth() !== calendarViewDate.getMonth()) {
+                    cellBtn.classList.add('other-month');
+                }
+
+                if (toLocalDateKey(cellDate) === toLocalDateKey(selectedRecordDate)) {
+                    cellBtn.classList.add('selected');
+                }
+
+                cellBtn.onclick = () => {
+                    selectedRecordDate = cellDate;
+                    if (selectedRecordDate.getMonth() !== calendarViewDate.getMonth() || selectedRecordDate.getFullYear() !== calendarViewDate.getFullYear()) {
+                        calendarViewDate = new Date(selectedRecordDate.getFullYear(), selectedRecordDate.getMonth(), 1);
+                    }
+                    renderCalendar();
+                    loadSelectedDateRecord();
+                };
+                grid.appendChild(cellBtn);
+            }
+        }
+
+        function changeCalendarMonth(offset) {
+            calendarViewDate.setMonth(calendarViewDate.getMonth() + offset);
+            renderCalendar();
+        }
+
+        function loadSelectedDateRecord() {
+            if (!currentChart) return;
+            const dateKey = toLocalDateKey(selectedRecordDate);
+            const record = getRecordForDate(currentChart, dateKey);
+            document.getElementById('recordLabel').textContent = `${formatDateJa(selectedRecordDate)}の成果：`;
+            document.getElementById('dailyAchievement').value = record.amount || 0;
+            document.getElementById('dailyMemo').value = record.memo || '';
+        }
+
+        function saveDailyRecord() {
+            if (!currentChart) return;
+            const dateKey = toLocalDateKey(selectedRecordDate);
+            const amount = Math.max(0, Number(document.getElementById('dailyAchievement').value) || 0);
+            const memo = document.getElementById('dailyMemo').value.trim();
+
+            currentChart.records[dateKey] = { amount, memo };
+            recalculateChartProgress(currentChart);
+            localStorage.setItem('anulisCharts', JSON.stringify(charts));
+
+            const startDate = new Date(currentChart.createdAt);
+            const endDate = new Date(currentChart.deadline);
+            const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+            const today = new Date();
+            const daysLeft = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+
+            const infoText = `${startDate.getFullYear()}年${startDate.getMonth()+1}月${startDate.getDate()}日 ~ ${endDate.getMonth()+1}月${endDate.getDate()}日 ${currentChart.total}${currentChart.unit}\nあと${daysLeft}日 完了 ${currentChart.completed} 残り ${currentChart.total - currentChart.completed}`;
+            document.getElementById('chartInfoText').textContent = infoText;
+            const dailyTarget = daysLeft > 0 ? Math.ceil((currentChart.total - currentChart.completed) / daysLeft) : 0;
+            document.getElementById('dailyTarget').textContent = dailyTarget;
+
+            drawChart(currentChart, totalDays, daysLeft);
+            renderCalendar();
         }
 
         function closeChart() {
