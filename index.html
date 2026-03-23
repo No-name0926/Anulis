@@ -165,4 +165,225 @@
             margin-bottom: 25px;
         }
 
-        .close-btn { width: 36px; height: 36px; border-radius: 50%; backgr
+        .close-btn { width: 36px; height: 36px; border-radius: 50%; background: #f0f0f0; border: none; font-size: 18px; }
+
+        .range-toggle {
+            background: #e0f2ff;
+            color: var(--primary-color);
+            border: none;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .form-group { margin-bottom: 20px; }
+        .form-label { font-size: 13px; color: var(--text-sub); margin-bottom: 8px; display: block; }
+        .form-input {
+            width: 100%;
+            padding: 14px;
+            background: #f8f9fa;
+            border: 1px solid #eee;
+            border-radius: 12px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .upload-zone {
+            border: 2px dashed #ddd;
+            padding: 30px;
+            text-align: center;
+            border-radius: 15px;
+            color: var(--accent-color);
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 17px;
+            font-weight: 700;
+            box-shadow: 0 10px 20px rgba(0,198,255,0.2);
+            margin-top: 10px;
+        }
+
+        /* 詳細画面 (画像4、5風) */
+        .detail-view {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: var(--bg-gradient);
+            z-index: 500;
+            overflow-y: auto;
+        }
+
+        /* タブバー (最下部) */
+        .bottom-tab {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            height: 80px;
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(15px);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding-bottom: 20px;
+            border-top: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .tab-item { font-size: 24px; color: #ccc; cursor: pointer; }
+        .tab-item.active { color: var(--accent-color); }
+
+    </style>
+</head>
+<body>
+
+    <div id="homeView">
+        <div class="top-nav">
+            <div class="menu-icon">≡</div>
+            <div class="logo-text">Anulis</div>
+            <div class="action-icons">
+                <div class="grid-icon">⊞</div>
+                <div class="add-circle-btn" onclick="openModal()">＋</div>
+            </div>
+        </div>
+        
+        <div class="page-title">Anulis</div>
+        
+        <div class="chart-grid" id="chartGrid">
+            </div>
+    </div>
+
+    <div class="modal-overlay" id="modal">
+        <div class="modal-window">
+            <div class="modal-header">
+                <button class="close-btn" onclick="closeModal()">✕</button>
+                <h3 style="font-size: 18px;">新規チャート</h3>
+                <button class="range-toggle">範囲で指定する</button>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">チャート名</label>
+                <input type="text" id="c_name" class="form-input" placeholder="TOEIC単語帳">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">終わらせたい期日</label>
+                <input type="date" id="c_date" class="form-input">
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <div style="flex: 2;">
+                    <label class="form-label">目標数</label>
+                    <input type="number" id="c_total" class="form-input" placeholder="300">
+                </div>
+                <div style="flex: 1;">
+                    <label class="form-label">単位</label>
+                    <select id="c_unit" class="form-input">
+                        <option>ページ</option>
+                        <option>問</option>
+                        <option>ユニット</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="upload-zone" onclick="alert('画像選択機能を起動します')">
+                    画像をアップロード
+                </div>
+            </div>
+
+            <button class="submit-btn" onclick="createChart()">次へ</button>
+        </div>
+    </div>
+
+    <div class="bottom-tab">
+        <div class="tab-item active">⌂</div>
+        <div class="tab-item">○</div>
+        <div class="tab-item">⚇</div>
+    </div>
+
+    <script>
+        let charts = JSON.parse(localStorage.getItem('anulis_v2_charts')) || [];
+
+        function openModal() { document.getElementById('modal').style.display = 'flex'; }
+        function closeModal() { document.getElementById('modal').style.display = 'none'; }
+
+        function createChart() {
+            const name = document.getElementById('c_name').value;
+            const date = document.getElementById('c_date').value;
+            const total = parseInt(document.getElementById('c_total').value);
+            const unit = document.getElementById('c_unit').value;
+
+            if(!name || !date || !total) return alert('全て入力してください');
+
+            const newChart = {
+                id: Date.now(),
+                name,
+                deadline: date,
+                total,
+                unit,
+                completed: 0,
+                createdAt: new Date().toISOString()
+            };
+
+            charts.push(newChart);
+            localStorage.setItem('anulis_v2_charts', JSON.stringify(charts));
+            renderCharts();
+            closeModal();
+            
+            // お祝い
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+        }
+
+        function renderCharts() {
+            const grid = document.getElementById('chartGrid');
+            grid.innerHTML = '';
+
+            charts.forEach(c => {
+                const percent = Math.min(100, Math.floor((c.completed / c.total) * 100));
+                const d = new Date(c.deadline);
+                const deadlineStr = `${d.getMonth()+1}月${d.getDate()}日`;
+
+                const card = document.createElement('div');
+                card.className = 'chart-card';
+                card.onclick = () => alert(c.name + 'の詳細画面へ（開発中）');
+                card.innerHTML = `
+                    <div class="card-content">
+                        <div class="card-title">${c.name}</div>
+                        <div class="card-info">期日: ${deadlineStr} | ${c.total}${c.unit}</div>
+                        <div class="progress-box">
+                            <div class="progress-bar-bg">
+                                <div class="progress-bar-fill" style="width: ${percent}%"></div>
+                            </div>
+                            <div class="progress-text">${percent}%</div>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            // 空の状態ならダミー（画像にあったプラスボタン付きのカード風）を表示
+            if(charts.length === 0) {
+                grid.innerHTML = `
+                    <div class="chart-card" style="justify-content:center; align-items:center; border: 2px dashed #ccc; background:none; min-height:120px;" onclick="openModal()">
+                        <div style="font-size:30px; color:#ccc;">＋</div>
+                    </div>
+                `;
+            }
+        }
+
+        // 初期描画
+        renderCharts();
+    </script>
+</body>
+</html>
