@@ -3,6 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#2f9dff" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="apple-touch-icon" href="./icon-192.png" />
   <title>Anulis</title>
   <style>
     :root {
@@ -480,7 +485,10 @@
       <div class="topbar">
         <button class="icon-btn" onclick="openSettingsModal()">☰</button>
         <div class="brand">Anulis</div>
-        <button class="icon-btn" onclick="openCreateModal()">＋ 新規</button>
+        <div style="display:flex; gap:6px; justify-content:flex-end;">
+          <button id="installBtn" class="icon-btn" style="display:none;" onclick="installApp()">⬇︎ インストール</button>
+          <button class="icon-btn" onclick="openCreateModal()">＋ 新規</button>
+        </div>
       </div>
       <div id="chartList" class="list"></div>
       <div id="emptyState" class="glass card empty" style="display:none;">チャートがありません。<br>「＋ 新規」から作成してください。</div>
@@ -618,6 +626,7 @@
     let db = null;
     let currentUser = null;
     let firebaseReady = false;
+    let installPromptEvent = null;
 
     const firebaseConfig = {
       apiKey: "AIzaSyAxH83j1DlrVgB_8wHxmCzXnHgAAOcHRkU",
@@ -813,6 +822,16 @@
       if (!auth) return;
       await auth.signOut();
       closeSettingsModal();
+    }
+
+    async function installApp() {
+      if (!installPromptEvent) return;
+      installPromptEvent.prompt();
+      const choice = await installPromptEvent.userChoice;
+      if (choice.outcome === 'accepted') {
+        document.getElementById('installBtn').style.display = 'none';
+      }
+      installPromptEvent = null;
     }
 
     function formatKey(date) {
@@ -1259,6 +1278,25 @@
 
     document.getElementById('authDomainHint').textContent =
       `現在のドメイン: ${window.location.hostname}（Firebase Authの許可ドメインに追加が必要）`;
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      installPromptEvent = e;
+      document.getElementById('installBtn').style.display = 'inline-block';
+    });
+
+    window.addEventListener('appinstalled', () => {
+      installPromptEvent = null;
+      document.getElementById('installBtn').style.display = 'none';
+    });
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch((err) => {
+          console.warn('service worker register failed', err);
+        });
+      });
+    }
 
     renderThemeButtons();
     renderList();
