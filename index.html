@@ -17,6 +17,31 @@
             color: #ffffff;
             min-height: 100vh;
             overflow-x: hidden;
+            --accent: #e8ecff;
+            --panel: rgba(7, 12, 28, 0.92);
+            --line: rgba(255,255,255,0.72);
+            --line-soft: rgba(255,255,255,0.45);
+        }
+
+        body[data-theme="midnight"] {
+            --accent: #e8ecff;
+            --panel: rgba(7, 12, 28, 0.92);
+            --line: rgba(255,255,255,0.76);
+            --line-soft: rgba(255,255,255,0.45);
+        }
+
+        body[data-theme="forest"] {
+            --accent: #d8ffe8;
+            --panel: rgba(8, 24, 18, 0.9);
+            --line: rgba(220,255,234,0.78);
+            --line-soft: rgba(220,255,234,0.45);
+        }
+
+        body[data-theme="mono"] {
+            --accent: #f2f2f2;
+            --panel: rgba(18, 18, 18, 0.93);
+            --line: rgba(255,255,255,0.82);
+            --line-soft: rgba(255,255,255,0.5);
         }
 
         .header {
@@ -49,6 +74,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+
+        .menu-btn:active, .grid-btn:active, .add-btn:active {
+            transform: scale(0.94);
         }
 
         .logo {
@@ -278,6 +308,7 @@
             background: #000000;
             z-index: 200;
             overflow-x: hidden;
+            animation: fadeIn 0.25s ease;
         }
 
         .chart-view-inner {
@@ -286,6 +317,7 @@
             overflow-x: hidden;
             position: relative;
             padding-bottom: 50px;
+            scroll-behavior: smooth;
         }
 
         .chart-header {
@@ -299,6 +331,7 @@
             left: 0;
             right: 0;
             z-index: 10;
+            transition: opacity 0.2s ease;
         }
 
         .chart-title {
@@ -380,7 +413,7 @@
 
         .daily-target {
             position: absolute;
-            bottom: 100px;
+            bottom: 170px;
             left: 0;
             right: 0;
             text-align: center;
@@ -417,6 +450,12 @@
             color: rgba(255,255,255,0.6);
             font-size: 11px;
             z-index: 10;
+            animation: bounceHint 1.8s infinite ease-in-out;
+        }
+
+        @keyframes bounceHint {
+            0%, 100% { transform: translateY(0); opacity: .7; }
+            50% { transform: translateY(4px); opacity: 1; }
         }
 
         .record-section {
@@ -424,11 +463,12 @@
             z-index: 5;
             margin: 0 14px 110px 14px;
             border-radius: 14px;
-            background: rgba(7, 12, 28, 0.92);
+            background: var(--panel);
             border: 1px solid rgba(255, 255, 255, 0.08);
             backdrop-filter: blur(16px);
             padding: 14px;
             color: #d9deea;
+            animation: slideUp 0.35s ease;
         }
 
         .calendar-header {
@@ -487,6 +527,11 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease;
+        }
+
+        .day-cell:active {
+            transform: scale(0.9);
         }
 
         .day-cell.other-month {
@@ -566,6 +611,83 @@
             font-weight: 600;
             padding: 10px 0;
             cursor: pointer;
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+
+        .save-record-btn:active {
+            transform: scale(0.98);
+            background: rgba(175, 182, 198, 0.35);
+        }
+
+        .custom-unit-input {
+            width: 100%;
+            margin-top: 10px;
+            padding: 12px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            color: white;
+            font-size: 14px;
+            display: none;
+        }
+
+        .custom-unit-input.active {
+            display: block;
+        }
+
+        .side-menu {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1200;
+            display: none;
+        }
+
+        .side-menu.active {
+            display: block;
+        }
+
+        .side-menu-panel {
+            width: min(82vw, 320px);
+            height: 100%;
+            background: #0b1020;
+            border-right: 1px solid rgba(255,255,255,0.12);
+            padding: 24px 16px;
+            transform: translateX(-100%);
+            transition: transform 0.25s ease;
+        }
+
+        .side-menu.active .side-menu-panel {
+            transform: translateX(0);
+        }
+
+        .menu-title {
+            font-size: 14px;
+            letter-spacing: 0.08em;
+            color: #cfd5e8;
+            margin-bottom: 12px;
+        }
+
+        .theme-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .theme-btn {
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 10px;
+            padding: 10px 8px;
+            font-size: 12px;
+            color: #eef2ff;
+            background: rgba(255,255,255,0.04);
+            cursor: pointer;
+        }
+
+        .theme-btn.active {
+            border-color: rgba(255,255,255,0.7);
+            background: rgba(255,255,255,0.14);
         }
 
         /* Bottom Navigation */
@@ -682,7 +804,7 @@
                 <div class="chart-title" id="chartViewTitle"></div>
                 <div style="display: flex; gap: 10px;">
                     <button class="share-btn" onclick="shareChart()">⎋</button>
-                    <button class="menu-dots">⋮</button>
+                    <button class="menu-dots" onclick="openEditModal()">⋮</button>
                 </div>
             </div>
             <div class="chart-info">
@@ -755,6 +877,7 @@
                         <div class="unit-option" onclick="selectUnit('ユニット')">ユニット</div>
                         <div class="unit-option" onclick="selectUnit('カスタム')">カスタム</div>
                     </div>
+                    <input type="text" id="customUnitInput" class="custom-unit-input" maxlength="10" placeholder="自由入力（例: セット）">
                 </div>
                 <div class="form-group">
                     <label class="form-label">背景画像 (オプション)</label>
@@ -776,6 +899,50 @@
         <button class="nav-btn">⚇</button>
     </div>
 
+    <div class="side-menu" id="sideMenu" onclick="closeMenu(event)">
+        <div class="side-menu-panel">
+            <div class="menu-title">テーマ変更</div>
+            <div class="theme-buttons">
+                <button class="theme-btn" data-theme-btn="midnight" onclick="applyTheme('midnight')">Midnight</button>
+                <button class="theme-btn" data-theme-btn="forest" onclick="applyTheme('forest')">Forest</button>
+                <button class="theme-btn" data-theme-btn="mono" onclick="applyTheme('mono')">Mono</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button class="back-btn" onclick="closeEditModal()">←</button>
+                <div class="modal-title">チャートを編集</div>
+                <button class="range-toggle" onclick="deleteCurrentChart()">削除</button>
+            </div>
+            <div class="form-section">
+                <div class="form-group">
+                    <label class="form-label">タイトル</label>
+                    <input type="text" class="form-input" id="editChartName">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">期日</label>
+                    <input type="date" class="form-input" id="editDeadline">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">目標値</label>
+                    <input type="number" class="form-input" id="editTotal">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">背景画像を変更 (オプション)</label>
+                    <input type="file" id="editBgImageInput" accept="image/*" style="display: none;" onchange="handleEditImageUpload(event)">
+                    <div class="image-upload" onclick="document.getElementById('editBgImageInput').click()">
+                        <div id="editUploadText">画像をアップロード</div>
+                        <img id="editImagePreview" class="image-preview" style="display: none;">
+                    </div>
+                </div>
+            </div>
+            <button class="next-btn" onclick="saveChartEdit()">保存</button>
+        </div>
+    </div>
+
     <script>
         let charts = JSON.parse(localStorage.getItem('anulisCharts')) || [];
         let currentChart = null;
@@ -784,6 +951,9 @@
         let calendarViewDate = new Date();
         let selectedRecordDate = new Date();
         const weekdayLabels = ['日', '月', '火', '水', '木', '金', '土'];
+        let swipeStartX = null;
+        let swipeStartY = null;
+        let editUploadedImage = null;
 
         function toLocalDateKey(date) {
             const year = date.getFullYear();
@@ -842,6 +1012,10 @@
             document.getElementById('pageCount').value = '';
             document.getElementById('imagePreview').style.display = 'none';
             document.getElementById('uploadText').style.display = 'block';
+            document.getElementById('customUnitInput').value = '';
+            document.getElementById('customUnitInput').classList.remove('active');
+            selectedUnit = 'ページ';
+            document.getElementById('selectedUnit').textContent = 'ページ';
             uploadedImage = null;
         }
 
@@ -853,6 +1027,13 @@
         function selectUnit(unit) {
             selectedUnit = unit;
             document.getElementById('selectedUnit').textContent = unit;
+            const customInput = document.getElementById('customUnitInput');
+            if (unit === 'カスタム') {
+                customInput.classList.add('active');
+                customInput.focus();
+            } else {
+                customInput.classList.remove('active');
+            }
             toggleUnitDropdown();
         }
 
@@ -870,12 +1051,27 @@
             }
         }
 
+        function handleEditImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                editUploadedImage = e.target.result;
+                document.getElementById('editImagePreview').src = editUploadedImage;
+                document.getElementById('editImagePreview').style.display = 'block';
+                document.getElementById('editUploadText').style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+
         function createChart() {
             const name = document.getElementById('chartName').value;
             const deadline = document.getElementById('deadline').value;
             const pageCount = parseInt(document.getElementById('pageCount').value);
+            const customUnit = document.getElementById('customUnitInput').value.trim();
+            const unitValue = selectedUnit === 'カスタム' ? customUnit : selectedUnit;
 
-            if (!name || !deadline || !pageCount) {
+            if (!name || !deadline || !pageCount || !unitValue) {
                 alert('すべての項目を入力してください');
                 return;
             }
@@ -886,7 +1082,7 @@
                 deadline: deadline,
                 total: pageCount,
                 completed: 0,
-                unit: selectedUnit,
+                unit: unitValue,
                 bgImage: uploadedImage,
                 createdAt: new Date().toISOString(),
                 history: [],
@@ -959,30 +1155,29 @@
 
             ctx.clearRect(0, 0, size, size);
 
-            // Grid lines
-            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+            // axis only
+            ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--line').trim() || 'rgba(255,255,255,0.75)';
             ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, size - padding);
+            ctx.lineTo(size - padding, size - padding);
+            ctx.stroke();
+
+            // Y-axis labels
             for (let i = 0; i <= 5; i++) {
                 const y = padding + (graphSize / 5) * i;
-                ctx.beginPath();
-                ctx.moveTo(padding, y);
-                ctx.lineTo(size - padding, y);
-                ctx.stroke();
-
-                // Y-axis labels
                 const value = Math.round(chart.total - (chart.total / 5) * i);
-                ctx.fillStyle = 'rgba(255,255,255,0.7)';
-                ctx.font = `${size * 0.03}px sans-serif`;
+                ctx.fillStyle = 'rgba(255,255,255,0.82)';
+                ctx.font = `${size * 0.028}px sans-serif`;
                 ctx.textAlign = 'right';
-                ctx.fillText(value.toString(), padding - 10, y + 5);
+                ctx.fillText(value.toLocaleString(), padding - 8, y + 4);
             }
 
             const startDate = new Date(chart.createdAt);
-            const endDate = new Date(chart.deadline);
-            const today = new Date();
             
             // Ideal line (dashed)
-            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+            ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--line-soft').trim() || 'rgba(255,255,255,0.5)';
             ctx.lineWidth = 2;
             ctx.setLineDash([8, 8]);
             ctx.beginPath();
@@ -993,8 +1188,8 @@
 
             // Actual progress line
             if (chart.history.length > 0) {
-                ctx.strokeStyle = '#10b981';
-                ctx.lineWidth = 3;
+                ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--line').trim() || 'rgba(255,255,255,0.75)';
+                ctx.lineWidth = 2.5;
                 ctx.beginPath();
                 ctx.moveTo(padding, padding);
                 
@@ -1010,26 +1205,14 @@
                 ctx.stroke();
             }
 
-            // Current point
-            const daysPassed = Math.ceil((today - startDate) / (1000 * 60 * 60 * 24));
-            const clampedToday = Math.max(0, Math.min(daysPassed, safeTotalDays));
-            const currentX = padding + (graphSize * clampedToday / safeTotalDays);
-            const remainingNow = Math.max(0, chart.total - chart.completed);
-            const currentY = size - padding - (graphSize * remainingNow / chart.total);
-            
-            ctx.fillStyle = '#10b981';
-            ctx.beginPath();
-            ctx.arc(currentX, currentY, 8, 0, Math.PI * 2);
-            ctx.fill();
-
             // Progress bar at top
-            ctx.fillStyle = '#10b981';
-            const barHeight = 6;
+            ctx.fillStyle = 'rgba(255,255,255,0.9)';
+            const barHeight = 2;
             ctx.fillRect(padding, padding - barHeight - 5, (graphSize * chart.completed / chart.total), barHeight);
 
             // X-axis labels
-            ctx.fillStyle = 'rgba(255,255,255,0.7)';
-            ctx.font = `${size * 0.028}px sans-serif`;
+            ctx.fillStyle = 'rgba(255,255,255,0.82)';
+            ctx.font = `${size * 0.024}px sans-serif`;
             ctx.textAlign = 'center';
             
             const datePoints = 6;
@@ -1042,8 +1225,8 @@
             }
 
             // Y-axis label
-            ctx.fillStyle = 'rgba(255,255,255,0.6)';
-            ctx.font = `${size * 0.032}px sans-serif`;
+            ctx.fillStyle = 'rgba(255,255,255,0.78)';
+            ctx.font = `${size * 0.028}px sans-serif`;
             ctx.textAlign = 'left';
             ctx.fillText(`(残り${chart.unit}数)`, padding, padding - 15);
         }
@@ -1146,6 +1329,83 @@
             alert('チャートのスクリーンショットが自動で添付されます');
         }
 
+        function openEditModal() {
+            if (!currentChart) return;
+            document.getElementById('editChartName').value = currentChart.name;
+            document.getElementById('editDeadline').value = currentChart.deadline;
+            document.getElementById('editTotal').value = currentChart.total;
+            editUploadedImage = null;
+            document.getElementById('editImagePreview').style.display = currentChart.bgImage ? 'block' : 'none';
+            if (currentChart.bgImage) {
+                document.getElementById('editImagePreview').src = currentChart.bgImage;
+                document.getElementById('editUploadText').style.display = 'none';
+            } else {
+                document.getElementById('editUploadText').style.display = 'block';
+            }
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        function saveChartEdit() {
+            if (!currentChart) return;
+            const name = document.getElementById('editChartName').value.trim();
+            const deadline = document.getElementById('editDeadline').value;
+            const total = Number(document.getElementById('editTotal').value);
+            if (!name || !deadline || !total) {
+                alert('入力内容を確認してください');
+                return;
+            }
+            currentChart.name = name;
+            currentChart.deadline = deadline;
+            currentChart.total = total;
+            if (editUploadedImage) {
+                currentChart.bgImage = editUploadedImage;
+            }
+            recalculateChartProgress(currentChart);
+            localStorage.setItem('anulisCharts', JSON.stringify(charts));
+            closeEditModal();
+            showChart(currentChart.id);
+        }
+
+        function deleteCurrentChart() {
+            if (!currentChart) return;
+            if (!confirm('このチャートを削除しますか？')) return;
+            charts = charts.filter(c => c.id !== currentChart.id);
+            localStorage.setItem('anulisCharts', JSON.stringify(charts));
+            closeEditModal();
+            closeChart();
+        }
+
+        function toggleMenu() {
+            document.getElementById('sideMenu').classList.add('active');
+        }
+
+        function closeMenu(event) {
+            if (!event || event.target.id === 'sideMenu') {
+                document.getElementById('sideMenu').classList.remove('active');
+            }
+        }
+
+        function applyTheme(theme) {
+            document.body.setAttribute('data-theme', theme);
+            localStorage.setItem('anulisTheme', theme);
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.themeBtn === theme);
+            });
+            document.getElementById('sideMenu').classList.remove('active');
+            if (currentChart && document.getElementById('chartView').style.display === 'block') {
+                const startDate = new Date(currentChart.createdAt);
+                const endDate = new Date(currentChart.deadline);
+                const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+                const today = new Date();
+                const daysLeft = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+                drawChart(currentChart, totalDays, daysLeft);
+            }
+        }
+
         function showHome() {
             document.getElementById('chartView').style.display = 'none';
             document.getElementById('chartList').style.display = 'none';
@@ -1189,13 +1449,36 @@
             });
         }
 
-        function toggleMenu() {
-            alert('メニュー機能は開発中です');
-        }
-
         if (charts.length > 0) {
             showChartList();
         }
+
+        const savedTheme = localStorage.getItem('anulisTheme') || 'midnight';
+        applyTheme(savedTheme);
+
+        const chartViewInner = document.querySelector('.chart-view-inner');
+        chartViewInner.addEventListener('touchstart', (e) => {
+            const touch = e.changedTouches[0];
+            swipeStartX = touch.clientX;
+            swipeStartY = touch.clientY;
+        }, { passive: true });
+
+        chartViewInner.addEventListener('touchend', (e) => {
+            if (swipeStartX === null || !currentChart) return;
+            const touch = e.changedTouches[0];
+            const dx = touch.clientX - swipeStartX;
+            const dy = touch.clientY - swipeStartY;
+            swipeStartX = null;
+            swipeStartY = null;
+
+            if (Math.abs(dx) < 70 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
+            const currentIndex = charts.findIndex(c => c.id === currentChart.id);
+            if (dx < 0 && currentIndex < charts.length - 1) {
+                showChart(charts[currentIndex + 1].id);
+            } else if (dx > 0 && currentIndex > 0) {
+                showChart(charts[currentIndex - 1].id);
+            }
+        }, { passive: true });
 
         window.addEventListener('resize', () => {
             if (currentChart && document.getElementById('chartView').style.display === 'block') {
