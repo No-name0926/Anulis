@@ -29,7 +29,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: "Inter", "Hiragino Sans", "Noto Sans JP", -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: "Inter", "Noto Sans JP", "Hiragino Sans", -apple-system, BlinkMacSystemFont, sans-serif;
       color: var(--text);
       min-height: 100vh;
       overflow-x: hidden;
@@ -170,6 +170,17 @@
       padding: 13px;
       border-radius: 16px;
       animation: fadeInUp .28s ease both;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(120deg, rgba(255,255,255,.45), rgba(255,255,255,0) 42%);
+      opacity: .7;
     }
 
     @keyframes fadeInUp {
@@ -252,10 +263,24 @@
       font-size: 20px;
       font-weight: 700;
       margin-bottom: 5px;
-      letter-spacing: .06em;
-      font-family: "Playfair Display", "Cormorant Garamond", "Yu Mincho", serif;
+      letter-spacing: .08em;
+      font-family: "Cormorant Garamond", "Playfair Display", "Yu Mincho", serif;
       color: color-mix(in srgb, var(--accent-deep) 84%, #1f2c44);
       text-shadow: 0 1px 0 rgba(255,255,255,.75);
+      position: relative;
+      display: inline-block;
+      padding: 0 6px;
+    }
+
+    .daily-caption::after {
+      content: "";
+      position: absolute;
+      left: 6px;
+      right: 6px;
+      bottom: -2px;
+      height: 5px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, rgba(var(--accent-rgb), .12), rgba(var(--accent-rgb), .35), rgba(var(--accent-rgb), .12));
     }
 
     .daily-big {
@@ -545,7 +570,7 @@
         <button class="save" onclick="saveRecord()">保存</button>
       </div>
 
-      <div class="swipe-hint">←→ スワイプで別チャートへ</div>
+      <div class="swipe-hint">←→ スワイプ別チャートへ</div>
     </div>
   </div>
 
@@ -615,7 +640,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Lora:wght@500;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
@@ -762,8 +787,12 @@
         return;
       }
       const wasSignedIn = localStorage.getItem('anulisSignedIn') === '1';
-      if (wasSignedIn) setSignedInUI(true);
-      else document.getElementById('authScreen').classList.add('loading');
+      if (wasSignedIn) {
+        setSignedInUI(true);
+        document.getElementById('authScreen').classList.add('loading');
+      } else {
+        document.getElementById('authScreen').classList.add('loading');
+      }
       firebase.initializeApp(firebaseConfig);
       if (firebase.analytics) firebase.analytics();
       auth = firebase.auth();
@@ -781,7 +810,8 @@
           renderList();
         } else {
           localStorage.setItem('anulisSignedIn', '0');
-          authResolveTimer = setTimeout(() => setSignedInUI(false), 350);
+          const delay = wasSignedIn ? 1200 : 350;
+          authResolveTimer = setTimeout(() => setSignedInUI(false), delay);
         }
       });
     }
@@ -911,14 +941,31 @@
       renderList();
     }
 
+    function todayKey() {
+      return formatKey(new Date());
+    }
+
+    function sanitizeFutureRecords(chart) {
+      if (!chart || !chart.records) return false;
+      const nowKey = todayKey();
+      let changed = false;
+      Object.keys(chart.records).forEach((key) => {
+        if (key > nowKey) {
+          delete chart.records[key];
+          changed = true;
+        }
+      });
+      return changed;
+    }
+
     function computeProgress(chart) {
       const keys = Object.keys(chart.records || {}).sort();
       let done = 0;
       const history = [];
-      const todayKey = formatKey(new Date());
+      const nowKey = todayKey();
 
       keys.forEach((key) => {
-        if (key > todayKey) return;
+        if (key > nowKey) return;
         done += Number(chart.records[key]?.amount || 0);
         if (done > chart.total) done = chart.total;
         history.push({ date: key, remaining: Math.max(0, chart.total - done) });
@@ -938,7 +985,9 @@
       }
 
       empty.style.display = 'none';
+      let hadSanitized = false;
       charts.forEach((chart, idx) => {
+        if (sanitizeFutureRecords(chart)) hadSanitized = true;
         const { done } = computeProgress(chart);
         const p = chart.total ? Math.round((done / chart.total) * 100) : 0;
         const d = new Date(chart.deadline);
@@ -956,6 +1005,11 @@
         list.appendChild(item);
         drawMiniGraph(item.querySelector('.mini-canvas'), chart);
       });
+
+      if (hadSanitized) {
+        saveLocalData();
+        saveCloudData();
+      }
     }
 
     function drawMiniGraph(canvas, chart) {
@@ -984,14 +1038,12 @@
 
       const points = [{ remaining: chart.total }, ...(history.length ? history : [])];
       ctx.beginPath();
+      ctx.moveTo(p, p);
       points.forEach((point, i) => {
-        let x = p + (gw * (i / Math.max(points.length - 1, 1)));
-        if (i === 1 && point.remaining < chart.total && points.length > 2) {
-          x = p + (gw * (1 / Math.max(points.length, 2)));
-        }
+        if (i === 0) return;
+        const x = p + (gw * (i / Math.max(points.length - 1, 1)));
         const y = h - p - (gh * (point.remaining / Math.max(chart.total, 1)));
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
+        ctx.lineTo(x, y);
       });
       ctx.strokeStyle = `rgba(${accentRgb}, .95)`;
       ctx.lineWidth = 2;
@@ -1095,14 +1147,14 @@
         ctx.strokeStyle = `rgba(${accentRgb}, 0.95)`;
         ctx.lineWidth = 2.4;
         ctx.beginPath();
+        ctx.moveTo(p, p);
         plotPoints.forEach((point, i) => {
+          if (i === 0) return;
           const d = normalizeDay(point.date);
-          let passed = Math.max(0, Math.min(spanDays, dayDiff(d, startDate)));
-          if (i > 0 && passed === 0 && point.remaining < chart.total) passed = 1;
+          const passed = Math.max(0, Math.min(spanDays, dayDiff(d, startDate)));
           const x = p + (gw * passed / spanDays);
           const y = h - p - (gh * (point.remaining / Math.max(chart.total, 1)));
-          if (i === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
+          ctx.lineTo(x, y);
         });
 
         ctx.stroke();
@@ -1178,13 +1230,13 @@
       if (!currentChart) return;
       const key = formatKey(selectedDate);
       const rec = currentChart.records[key] || { amount: 0, memo: '' };
-      const todayKey = formatKey(new Date());
-      const isFuture = key > todayKey;
+      const isFuture = key > todayKey();
       document.getElementById('recordLabel').textContent = `${formatJa(selectedDate)}の成果`;
       document.getElementById('recordInput').value = rec.amount || 0;
       document.getElementById('memoInput').value = rec.memo || '';
       document.getElementById('recordInput').disabled = isFuture;
       document.getElementById('memoInput').disabled = isFuture;
+      document.querySelector('#calendarCard .save').disabled = isFuture;
       if (isFuture) {
         document.getElementById('recordLabel').textContent = `${formatJa(selectedDate)}は未来日のため記録できません`;
       }
@@ -1193,7 +1245,7 @@
     function saveRecord() {
       if (!currentChart) return;
       const key = formatKey(selectedDate);
-      if (dayDiff(selectedDate, new Date()) > 0 || key > formatKey(new Date())) {
+      if (dayDiff(selectedDate, new Date()) > 0 || key > todayKey()) {
         alert('未来の日付には記録できません');
         return;
       }
@@ -1344,7 +1396,11 @@
     document.getElementById('editModal').addEventListener('click', (e) => {
       if (e.target.id === 'editModal') closeEditModal();
     });
-    document.getElementById('settingsModal').addEventListener('click', (e) => {
+    const settingsModal = document.getElementById('settingsModal');
+    settingsModal.addEventListener('click', (e) => {
+      if (e.target.id === 'settingsModal') closeSettingsModal();
+    });
+    settingsModal.addEventListener('pointerdown', (e) => {
       if (e.target.id === 'settingsModal') closeSettingsModal();
     });
 
