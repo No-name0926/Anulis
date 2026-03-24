@@ -232,10 +232,21 @@
     .title { font-size: 13px; font-weight: 650; color: var(--accent-deep); margin-bottom: 4px; letter-spacing: .02em; }
     .meta { font-size: 11px; color: var(--text-soft); line-height: 1.45; }
     .meta .due-date {
-      font-family: "Playfair Display", "Cormorant Garamond", serif;
-      letter-spacing: .05em;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-family: "Inter", "Noto Sans JP", sans-serif;
+      letter-spacing: .08em;
       color: color-mix(in srgb, var(--accent-deep) 72%, #455f8d);
-      font-weight: 600;
+      font-weight: 700;
+      font-size: 10px;
+    }
+    .meta .due-date::before,
+    .meta .due-date::after {
+      content: "★";
+      font-size: 9px;
+      color: rgba(var(--accent-rgb), .62);
+      text-shadow: 0 0 8px rgba(var(--accent-rgb), .25);
     }
 
     .progress-track {
@@ -971,8 +982,16 @@
       return `${date.getMonth() + 1}月${date.getDate()}日`;
     }
 
+    function parseLocalDate(dateLike) {
+      if (typeof dateLike === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateLike)) {
+        const [y, m, d] = dateLike.split('-').map(Number);
+        return new Date(y, m - 1, d);
+      }
+      return new Date(dateLike);
+    }
+
     function normalizeDay(dateLike) {
-      const d = new Date(dateLike);
+      const d = parseLocalDate(dateLike);
       return new Date(d.getFullYear(), d.getMonth(), d.getDate());
     }
 
@@ -981,7 +1000,7 @@
     }
 
     function toDateInputValue(dateLike) {
-      return normalizeDay(dateLike).toISOString().split('T')[0];
+      return formatKey(normalizeDay(dateLike));
     }
 
     function getChartStart(chart) {
