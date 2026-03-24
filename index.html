@@ -30,7 +30,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: "Inter", "Noto Sans JP", "Hiragino Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: "Inter", "Noto Sans JP", "Hiragino Kaku Gothic ProN", -apple-system, BlinkMacSystemFont, sans-serif;
       color: var(--text);
       min-height: 100vh;
       overflow-x: hidden;
@@ -153,9 +153,9 @@
 
     .brand {
       text-align: center;
-      font-size: 19px;
-      font-weight: 620;
-      letter-spacing: .03em;
+      font-size: 17px;
+      font-weight: 650;
+      letter-spacing: .08em;
       color: var(--accent-deep);
     }
 
@@ -205,7 +205,7 @@
     }
 
     .card {
-      padding: 13px;
+      padding: 12px;
       border-radius: 16px;
       animation: fadeInUp .28s ease both;
       position: relative;
@@ -229,8 +229,8 @@
     .chart-item { cursor: pointer; transition: transform .18s ease, box-shadow .18s ease; }
     .chart-item:active { transform: scale(.985); }
 
-    .title { font-size: 14px; font-weight: 620; color: var(--accent-deep); margin-bottom: 5px; }
-    .meta { font-size: 11.5px; color: var(--text-soft); line-height: 1.5; }
+    .title { font-size: 13px; font-weight: 650; color: var(--accent-deep); margin-bottom: 4px; letter-spacing: .02em; }
+    .meta { font-size: 11px; color: var(--text-soft); line-height: 1.45; }
     .meta .due-date {
       font-family: "Playfair Display", "Cormorant Garamond", serif;
       letter-spacing: .05em;
@@ -284,8 +284,8 @@
 
     .chart-name {
       text-align: center;
-      font-size: 15px;
-      font-weight: 620;
+      font-size: 14px;
+      font-weight: 650;
       color: var(--accent-deep);
       white-space: nowrap;
       overflow: hidden;
@@ -304,14 +304,13 @@
     }
 
     .daily-caption {
-      font-size: 20px;
-      font-weight: 700;
+      font-size: 15px;
+      font-weight: 600;
       margin-bottom: 5px;
-      letter-spacing: .1em;
-      font-family: "Lora", "Playfair Display", "Cormorant Garamond", "Yu Mincho", serif;
-      font-style: italic;
-      color: color-mix(in srgb, var(--accent-deep) 84%, #1f2c44);
-      text-shadow: 0 1px 0 rgba(255,255,255,.75);
+      letter-spacing: .14em;
+      font-family: "Inter", "Noto Sans JP", sans-serif;
+      text-transform: uppercase;
+      color: color-mix(in srgb, var(--accent-deep) 78%, #1f2c44);
       position: relative;
       display: inline-block;
       padding: 0 10px;
@@ -320,26 +319,26 @@
     .daily-caption::after {
       content: "";
       position: absolute;
-      left: 6px;
-      right: 6px;
-      bottom: -2px;
-      height: 5px;
+      left: 8px;
+      right: 8px;
+      bottom: -4px;
+      height: 2px;
       border-radius: 999px;
-      background: linear-gradient(90deg, rgba(var(--accent-rgb), .12), rgba(var(--accent-rgb), .35), rgba(var(--accent-rgb), .12));
+      background: linear-gradient(90deg, rgba(var(--accent-rgb), .1), rgba(var(--accent-rgb), .52), rgba(var(--accent-rgb), .1));
     }
 
     .daily-caption::before {
-      content: "✦";
+      content: "◆";
       position: absolute;
-      left: -10px;
-      top: -2px;
-      color: rgba(var(--accent-rgb), .52);
-      font-size: 12px;
+      left: -9px;
+      top: 2px;
+      color: rgba(var(--accent-rgb), .42);
+      font-size: 8px;
       text-shadow: none;
     }
 
     .daily-big {
-      font-size: 35px;
+      font-size: 31px;
       font-weight: 800;
       color: var(--accent-deep);
       line-height: 1.15;
@@ -352,9 +351,9 @@
       background: linear-gradient(150deg, rgba(255,255,255,.92), rgba(var(--accent-rgb), .09));
     }
 
-    .kpi-label { font-size: 11.5px; color: var(--text-soft); margin-bottom: 4px; }
-    .kpi-value { font-size: 25px; font-weight: 700; color: var(--accent-deep); line-height: 1; }
-    .kpi-sub { font-size: 11px; color: var(--text-soft); margin-top: 4px; }
+    .kpi-label { font-size: 10.5px; color: var(--text-soft); margin-bottom: 4px; letter-spacing: .08em; }
+    .kpi-value { font-size: 22px; font-weight: 700; color: var(--accent-deep); line-height: 1; }
+    .kpi-sub { font-size: 10.5px; color: var(--text-soft); margin-top: 4px; }
 
     .calendar-head {
       display: flex;
@@ -365,7 +364,7 @@
       border-bottom: 1px dashed color-mix(in srgb, var(--accent) 24%, white);
     }
 
-    .month-label { font-size: 14px; font-weight: 620; color: var(--accent-deep); }
+    .month-label { font-size: 13px; font-weight: 650; color: var(--accent-deep); }
 
     .week-row,
     .day-grid {
@@ -413,7 +412,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 8px;
-      font-size: 11.5px;
+      font-size: 11px;
       color: var(--text-soft);
     }
 
@@ -423,7 +422,7 @@
       border-bottom: 1px solid color-mix(in srgb, var(--accent) 40%, white);
       background: transparent;
       color: var(--accent-deep);
-      font-size: 22px;
+      font-size: 20px;
       text-align: right;
       outline: none;
       padding: 1px 0;
@@ -436,7 +435,7 @@
       border-bottom: 1px solid color-mix(in srgb, var(--accent) 40%, white);
       background: transparent;
       color: var(--text);
-      font-size: 12px;
+      font-size: 11px;
       padding: 8px 0;
       outline: none;
     }
@@ -449,7 +448,7 @@
       color: var(--accent-deep);
       border-radius: 12px;
       padding: 9px;
-      font-size: 12.5px;
+      font-size: 12px;
       font-weight: 600;
       cursor: pointer;
       transition: all .2s ease;
@@ -509,8 +508,9 @@
     }
 
     .field { margin-bottom: 10px; }
-    .label { font-size: 11px; color: var(--text-soft); margin-bottom: 4px; display: block; }
+    .label { font-size: 10px; color: var(--text-soft); margin-bottom: 4px; display: block; letter-spacing: .08em; }
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .row-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .unit-custom { display: none; margin-top: 8px; }
     .unit-custom.show { display: block; }
 
@@ -643,10 +643,14 @@
         <label class="label">タイトル</label>
         <input id="nameInput" class="input" placeholder="例: ターゲット1900" />
       </div>
-      <div class="row">
+      <div class="row row-3">
         <div class="field">
-          <label class="label">期日</label>
-          <input id="deadlineInput" type="date" class="input" />
+          <label class="label">開始日</label>
+          <input id="startInput" type="date" class="input" />
+        </div>
+        <div class="field">
+          <label class="label">終了日</label>
+          <input id="endInput" type="date" class="input" />
         </div>
         <div class="field">
           <label class="label">総量</label>
@@ -674,10 +678,14 @@
         <label class="label">タイトル</label>
         <input id="editName" class="input" />
       </div>
-      <div class="row">
+      <div class="row row-3">
         <div class="field">
-          <label class="label">期日</label>
-          <input id="editDeadline" type="date" class="input" />
+          <label class="label">開始日</label>
+          <input id="editStart" type="date" class="input" />
+        </div>
+        <div class="field">
+          <label class="label">終了日</label>
+          <input id="editEnd" type="date" class="input" />
         </div>
         <div class="field">
           <label class="label">総量</label>
@@ -972,11 +980,25 @@
       return Math.floor((normalizeDay(a) - normalizeDay(b)) / 86400000);
     }
 
+    function toDateInputValue(dateLike) {
+      return normalizeDay(dateLike).toISOString().split('T')[0];
+    }
+
+    function getChartStart(chart) {
+      return normalizeDay(chart.startDate || chart.createdAt || new Date());
+    }
+
+    function getChartEnd(chart) {
+      return normalizeDay(chart.endDate || chart.deadline || chart.createdAt || new Date());
+    }
+
     function openCreateModal() {
       document.getElementById('createModal').style.display = 'flex';
-      const d = new Date();
-      d.setDate(d.getDate() + 7);
-      document.getElementById('deadlineInput').value = d.toISOString().split('T')[0];
+      const start = normalizeDay(new Date());
+      const end = new Date(start);
+      end.setDate(end.getDate() + 7);
+      document.getElementById('startInput').value = toDateInputValue(start);
+      document.getElementById('endInput').value = toDateInputValue(end);
     }
 
     function closeCreateModal() {
@@ -990,13 +1012,18 @@
 
     function createChart() {
       const name = document.getElementById('nameInput').value.trim();
-      const deadline = document.getElementById('deadlineInput').value;
+      const startDate = document.getElementById('startInput').value;
+      const endDate = document.getElementById('endInput').value;
       const total = Number(document.getElementById('totalInput').value);
       const unitSel = document.getElementById('unitInput').value;
       const custom = document.getElementById('customUnit').value.trim();
       const unit = unitSel === 'custom' ? custom : unitSel;
 
-      if (!name || !deadline || !total || !unit) {
+      if (!name || !startDate || !endDate || !total || !unit) {
+        alert('入力を確認してください');
+        return;
+      }
+      if (normalizeDay(startDate) > normalizeDay(endDate)) {
         alert('入力を確認してください');
         return;
       }
@@ -1004,7 +1031,8 @@
       charts.push({
         id: Date.now(),
         name,
-        deadline,
+        startDate,
+        endDate,
         total,
         unit,
         createdAt: new Date().toISOString(),
@@ -1021,12 +1049,14 @@
       return formatKey(new Date());
     }
 
-    function sanitizeFutureRecords(chart) {
+    function sanitizeChartRecords(chart) {
       if (!chart || !chart.records) return false;
-      const nowKey = todayKey();
+      const now = todayKey();
+      const startKey = toDateInputValue(getChartStart(chart));
+      const endKey = toDateInputValue(getChartEnd(chart));
       let changed = false;
       Object.keys(chart.records).forEach((key) => {
-        if (key > nowKey) {
+        if (key > now || key < startKey || key > endKey) {
           delete chart.records[key];
           changed = true;
         }
@@ -1038,10 +1068,12 @@
       const keys = Object.keys(chart.records || {}).sort();
       let done = 0;
       const history = [];
+      const startKey = toDateInputValue(getChartStart(chart));
+      const endKey = toDateInputValue(getChartEnd(chart));
       const nowKey = todayKey();
 
       keys.forEach((key) => {
-        if (key > nowKey) return;
+        if (key < startKey || key > endKey || key > nowKey) return;
         done += Number(chart.records[key]?.amount || 0);
         if (done > chart.total) done = chart.total;
         history.push({ date: key, remaining: Math.max(0, chart.total - done) });
@@ -1063,10 +1095,11 @@
       empty.style.display = 'none';
       let hadSanitized = false;
       charts.forEach((chart, idx) => {
-        if (sanitizeFutureRecords(chart)) hadSanitized = true;
+        if (sanitizeChartRecords(chart)) hadSanitized = true;
         const { done } = computeProgress(chart);
         const p = chart.total ? Math.round((done / chart.total) * 100) : 0;
-        const d = new Date(chart.deadline);
+        const start = getChartStart(chart);
+        const end = getChartEnd(chart);
 
         const item = document.createElement('div');
         item.className = 'glass card chart-item';
@@ -1074,7 +1107,7 @@
         item.onclick = () => showChart(chart.id);
         item.innerHTML = `
           <div class="title">${chart.name}</div>
-          <div class="meta"><span class="due-date">期日 ${d.getMonth() + 1}/${d.getDate()}</span> ・ ${done}/${chart.total}${chart.unit}</div>
+          <div class="meta"><span class="due-date">${start.getMonth() + 1}/${start.getDate()} - ${end.getMonth() + 1}/${end.getDate()}</span> ・ ${done}/${chart.total}${chart.unit}</div>
           <div class="progress-track"><div class="progress-bar" style="width:${p}%"></div></div>
           <canvas class="mini-canvas"></canvas>
         `;
@@ -1139,7 +1172,10 @@
       document.getElementById('homeScreen').style.display = 'none';
       document.getElementById('chartScreen').style.display = 'block';
       document.getElementById('chartTitle').textContent = currentChart.name;
-      selectedDate = new Date();
+      const today = normalizeDay(new Date());
+      const chartStart = getChartStart(currentChart);
+      const chartEnd = getChartEnd(currentChart);
+      selectedDate = today < chartStart ? chartStart : (today > chartEnd ? chartEnd : today);
       calendarBase = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
       updateChartUI();
     }
@@ -1153,16 +1189,16 @@
 
     function updateChartUI() {
       if (!currentChart) return;
-      if (sanitizeFutureRecords(currentChart)) {
+      if (sanitizeChartRecords(currentChart)) {
         saveLocalData();
         saveCloudData();
       }
 
       const { done, history } = computeProgress(currentChart);
       const remain = Math.max(0, currentChart.total - done);
-      const deadline = new Date(currentChart.deadline);
-      const today = new Date();
-      const daysLeft = Math.max(0, Math.ceil((deadline - today) / 86400000));
+      const deadline = getChartEnd(currentChart);
+      const today = normalizeDay(new Date());
+      const daysLeft = Math.max(0, dayDiff(deadline, today) + 1);
       const daily = daysLeft > 0 ? Math.ceil(remain / daysLeft) : remain;
       const progress = currentChart.total ? Math.round((done / currentChart.total) * 100) : 0;
 
@@ -1195,8 +1231,8 @@
       const p = 28;
       const gw = w - p * 2;
       const gh = h - p * 2;
-      const startDate = normalizeDay(chart.createdAt);
-      const endDate = new Date(chart.deadline);
+      const startDate = getChartStart(chart);
+      const endDate = getChartEnd(chart);
       const spanDays = Math.max(1, Math.ceil((endDate - startDate) / 86400000));
 
       // axis
@@ -1218,25 +1254,28 @@
       ctx.stroke();
       ctx.setLineDash([]);
 
-      // actual line (always starts at top-left)
+      // actual line (day boundary rendering to avoid 90° kink)
       {
         const accentRgb = getComputedStyle(document.documentElement)
           .getPropertyValue('--accent-rgb')
           .trim() || '43, 109, 255';
-        const plotPoints = [{ date: chart.createdAt, remaining: chart.total }, ...history];
+        const historyMap = new Map(history.map((point) => [point.date, point.remaining]));
+        const today = normalizeDay(new Date());
+        const maxElapsed = Math.max(0, Math.min(spanDays, dayDiff(today, startDate) + 1));
+        let remaining = chart.total;
         ctx.strokeStyle = `rgba(${accentRgb}, 0.95)`;
         ctx.lineWidth = 2.4;
         ctx.beginPath();
         ctx.moveTo(p, p);
-        plotPoints.forEach((point, i) => {
-          if (i === 0) return;
-          const d = normalizeDay(point.date);
-          const passed = Math.max(0, Math.min(spanDays, dayDiff(d, startDate)));
-          const adjustedPassed = passed === 0 ? 0.5 : passed;
-          const x = p + (gw * adjustedPassed / spanDays);
-          const y = h - p - (gh * (point.remaining / Math.max(chart.total, 1)));
+        for (let elapsed = 1; elapsed <= maxElapsed; elapsed++) {
+          const day = new Date(startDate);
+          day.setDate(day.getDate() + elapsed - 1);
+          const key = toDateInputValue(day);
+          if (historyMap.has(key)) remaining = historyMap.get(key);
+          const x = p + (gw * (elapsed / spanDays));
+          const y = h - p - (gh * (remaining / Math.max(chart.total, 1)));
           ctx.lineTo(x, y);
-        });
+        }
 
         ctx.stroke();
       }
@@ -1280,14 +1319,17 @@
         d.setDate(start.getDate() + i);
         const today = normalizeDay(new Date());
         const isFuture = normalizeDay(d) > today;
+        const chartStart = getChartStart(currentChart);
+        const chartEnd = getChartEnd(currentChart);
+        const isOutOfRange = normalizeDay(d) < chartStart || normalizeDay(d) > chartEnd;
 
         const btn = document.createElement('button');
         btn.className = 'day-btn';
         if (d.getMonth() !== calendarBase.getMonth()) btn.classList.add('other');
-        if (isFuture) btn.classList.add('future');
+        if (isFuture || isOutOfRange) btn.classList.add('future');
         if (formatKey(d) === formatKey(selectedDate)) btn.classList.add('active');
         btn.textContent = d.getDate();
-        btn.disabled = isFuture;
+        btn.disabled = isFuture || isOutOfRange;
 
         btn.onclick = () => {
           selectedDate = d;
@@ -1311,21 +1353,32 @@
       if (!currentChart) return;
       const key = formatKey(selectedDate);
       const rec = currentChart.records[key] || { amount: 0, memo: '' };
+      const startKey = toDateInputValue(getChartStart(currentChart));
+      const endKey = toDateInputValue(getChartEnd(currentChart));
       const isFuture = key > todayKey();
+      const isOutOfRange = key < startKey || key > endKey;
       document.getElementById('recordLabel').textContent = `${formatJa(selectedDate)}の成果`;
       document.getElementById('recordInput').value = rec.amount || 0;
       document.getElementById('memoInput').value = rec.memo || '';
-      document.getElementById('recordInput').disabled = isFuture;
-      document.getElementById('memoInput').disabled = isFuture;
-      document.querySelector('#calendarCard .save').disabled = isFuture;
+      document.getElementById('recordInput').disabled = isFuture || isOutOfRange;
+      document.getElementById('memoInput').disabled = isFuture || isOutOfRange;
+      document.querySelector('#calendarCard .save').disabled = isFuture || isOutOfRange;
       if (isFuture) {
         document.getElementById('recordLabel').textContent = `${formatJa(selectedDate)}は未来日のため記録できません`;
+      } else if (isOutOfRange) {
+        document.getElementById('recordLabel').textContent = `${formatJa(selectedDate)}は期間外のため記録できません`;
       }
     }
 
     function saveRecord() {
       if (!currentChart) return;
       const key = formatKey(selectedDate);
+      const startKey = toDateInputValue(getChartStart(currentChart));
+      const endKey = toDateInputValue(getChartEnd(currentChart));
+      if (key < startKey || key > endKey) {
+        alert('設定した期間外の日付には記録できません');
+        return;
+      }
       if (dayDiff(selectedDate, new Date()) > 0 || key > todayKey()) {
         alert('未来の日付には記録できません');
         return;
@@ -1345,7 +1398,8 @@
     function openEditModal() {
       if (!currentChart) return;
       document.getElementById('editName').value = currentChart.name;
-      document.getElementById('editDeadline').value = currentChart.deadline;
+      document.getElementById('editStart').value = toDateInputValue(getChartStart(currentChart));
+      document.getElementById('editEnd').value = toDateInputValue(getChartEnd(currentChart));
       document.getElementById('editTotal').value = currentChart.total;
       document.getElementById('editModal').style.display = 'flex';
     }
@@ -1357,16 +1411,22 @@
     function saveEdit() {
       if (!currentChart) return;
       const name = document.getElementById('editName').value.trim();
-      const deadline = document.getElementById('editDeadline').value;
+      const startDate = document.getElementById('editStart').value;
+      const endDate = document.getElementById('editEnd').value;
       const total = Number(document.getElementById('editTotal').value);
 
-      if (!name || !deadline || !total) {
+      if (!name || !startDate || !endDate || !total) {
+        alert('入力を確認してください');
+        return;
+      }
+      if (normalizeDay(startDate) > normalizeDay(endDate)) {
         alert('入力を確認してください');
         return;
       }
 
       currentChart.name = name;
-      currentChart.deadline = deadline;
+      currentChart.startDate = startDate;
+      currentChart.endDate = endDate;
       currentChart.total = total;
       saveLocalData();
       saveCloudData();
