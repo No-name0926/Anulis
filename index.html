@@ -103,13 +103,6 @@
       font-size: 12.5px;
       margin-bottom: 14px;
     }
-    .auth-domain {
-      margin-top: 10px;
-      font-size: 11px;
-      color: var(--text-soft);
-      word-break: break-all;
-    }
-
     .auth-btn {
       width: 100%;
       border: none;
@@ -321,6 +314,10 @@
       color: #fff;
       box-shadow: 0 5px 12px rgba(var(--accent-rgb), 0.28);
     }
+    .day-btn.future {
+      opacity: .42;
+      cursor: not-allowed;
+    }
 
     .record-line {
       margin-top: 8px;
@@ -450,11 +447,6 @@
       border-color: var(--accent);
       box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.22);
     }
-    .modal-close-zone {
-      flex: 1;
-      width: 100%;
-    }
-
     .mini-canvas {
       width: 100% !important;
       height: 90px !important;
@@ -554,7 +546,6 @@
   </div>
 
   <div class="modal" id="createModal">
-    <div class="modal-close-zone" onclick="closeCreateModal()"></div>
     <div class="modal-box">
       <div class="field">
         <label class="label">タイトル</label>
@@ -586,7 +577,6 @@
   </div>
 
   <div class="modal" id="editModal">
-    <div class="modal-close-zone" onclick="closeEditModal()"></div>
     <div class="modal-box">
       <div class="field">
         <label class="label">タイトル</label>
@@ -609,7 +599,6 @@
   </div>
 
   <div class="modal" id="settingsModal">
-    <div class="modal-close-zone" onclick="closeSettingsModal()"></div>
     <div class="modal-box">
       <div class="field">
         <label class="label">テーマカラー</label>
@@ -862,6 +851,15 @@
       return `${date.getMonth() + 1}月${date.getDate()}日`;
     }
 
+    function normalizeDay(dateLike) {
+      const d = new Date(dateLike);
+      return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    }
+
+    function dayDiff(a, b) {
+      return Math.floor((normalizeDay(a) - normalizeDay(b)) / 86400000);
+    }
+
     function openCreateModal() {
       document.getElementById('createModal').style.display = 'flex';
       const d = new Date();
@@ -1056,7 +1054,7 @@
       const p = 28;
       const gw = w - p * 2;
       const gh = h - p * 2;
-      const startDate = new Date(chart.createdAt);
+      const startDate = normalizeDay(chart.createdAt);
       const endDate = new Date(chart.deadline);
       const spanDays = Math.max(1, Math.ceil((endDate - startDate) / 86400000));
 
@@ -1089,8 +1087,9 @@
         ctx.lineWidth = 2.4;
         ctx.beginPath();
         plotPoints.forEach((point, i) => {
-          const d = new Date(point.date);
-          const passed = Math.max(0, Math.min(spanDays, Math.ceil((d - startDate) / 86400000)));
+          const d = normalizeDay(point.date);
+          let passed = Math.max(0, Math.min(spanDays, dayDiff(d, startDate)));
+          if (i > 0 && passed === 0 && point.remaining < chart.total) passed = 1;
           const x = p + (gw * passed / spanDays);
           const y = h - p - (gh * (point.remaining / Math.max(chart.total, 1)));
           if (i === 0) ctx.moveTo(x, y);
@@ -1137,12 +1136,16 @@
       for (let i = 0; i < 42; i++) {
         const d = new Date(start);
         d.setDate(start.getDate() + i);
+        const today = normalizeDay(new Date());
+        const isFuture = normalizeDay(d) > today;
 
         const btn = document.createElement('button');
         btn.className = 'day-btn';
         if (d.getMonth() !== calendarBase.getMonth()) btn.classList.add('other');
+        if (isFuture) btn.classList.add('future');
         if (formatKey(d) === formatKey(selectedDate)) btn.classList.add('active');
         btn.textContent = d.getDate();
+        btn.disabled = isFuture;
 
         btn.onclick = () => {
           selectedDate = d;
@@ -1326,6 +1329,16 @@
         });
       });
     }
+
+    document.getElementById('createModal').addEventListener('click', (e) => {
+      if (e.target.id === 'createModal') closeCreateModal();
+    });
+    document.getElementById('editModal').addEventListener('click', (e) => {
+      if (e.target.id === 'editModal') closeEditModal();
+    });
+    document.getElementById('settingsModal').addEventListener('click', (e) => {
+      if (e.target.id === 'settingsModal') closeSettingsModal();
+    });
 
     renderThemeButtons();
     renderList();
