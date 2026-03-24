@@ -83,6 +83,7 @@
       width: min(100%, 560px);
       margin: 28px auto 0;
       padding: 0 14px;
+      display: none;
     }
 
     .auth-card {
@@ -141,8 +142,8 @@
     }
 
     .glass {
-      background: var(--surface);
-      border: 1px solid var(--line);
+      background: linear-gradient(145deg, color-mix(in srgb, var(--surface) 95%, white), color-mix(in srgb, var(--surface) 75%, var(--accent-soft)));
+      border: 1px solid color-mix(in srgb, var(--line) 86%, white);
       border-radius: 16px;
       backdrop-filter: blur(10px);
       box-shadow: var(--shadow);
@@ -256,6 +257,9 @@
       color: var(--text-soft);
       margin-bottom: 5px;
       letter-spacing: .03em;
+      font-family: "Cormorant Garamond", "Yu Mincho", serif;
+      font-size: 18px;
+      color: color-mix(in srgb, var(--accent-deep) 72%, var(--text-soft));
     }
 
     .daily-big {
@@ -389,7 +393,9 @@
       background: rgba(32, 53, 92, 0.28);
       backdrop-filter: blur(4px);
       display: none;
-      align-items: flex-end;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: stretch;
       z-index: 20;
     }
 
@@ -444,6 +450,10 @@
       border-color: var(--accent);
       box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.22);
     }
+    .modal-close-zone {
+      flex: 1;
+      width: 100%;
+    }
 
     .mini-canvas {
       width: 100% !important;
@@ -476,7 +486,7 @@
       <div class="auth-sub">Google / X(Twitter) でログインして記録を同期</div>
       <button class="auth-btn google" onclick="loginWithGoogle()">Google でログイン</button>
       <button class="auth-btn twitter" onclick="loginWithTwitter()">X(Twitter) でログイン</button>
-      <div class="auth-domain" id="authDomainHint"></div>
+      
     </div>
   </div>
 
@@ -544,6 +554,7 @@
   </div>
 
   <div class="modal" id="createModal">
+    <div class="modal-close-zone" onclick="closeCreateModal()"></div>
     <div class="modal-box">
       <div class="field">
         <label class="label">タイトル</label>
@@ -575,6 +586,7 @@
   </div>
 
   <div class="modal" id="editModal">
+    <div class="modal-close-zone" onclick="closeEditModal()"></div>
     <div class="modal-box">
       <div class="field">
         <label class="label">タイトル</label>
@@ -597,6 +609,7 @@
   </div>
 
   <div class="modal" id="settingsModal">
+    <div class="modal-close-zone" onclick="closeSettingsModal()"></div>
     <div class="modal-box">
       <div class="field">
         <label class="label">テーマカラー</label>
@@ -606,6 +619,10 @@
       <button class="save" onclick="closeSettingsModal()">閉じる</button>
     </div>
   </div>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&display=swap" rel="stylesheet">
 
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
@@ -894,8 +911,10 @@
       const keys = Object.keys(chart.records || {}).sort();
       let done = 0;
       const history = [];
+      const todayKey = formatKey(new Date());
 
       keys.forEach((key) => {
+        if (key > todayKey) return;
         done += Number(chart.records[key]?.amount || 0);
         if (done > chart.total) done = chart.total;
         history.push({ date: key, remaining: Math.max(0, chart.total - done) });
@@ -1060,22 +1079,22 @@
       ctx.stroke();
       ctx.setLineDash([]);
 
-      // actual line (no dot)
-      if (history.length) {
+      // actual line (always starts at top-left)
+      {
         const accentRgb = getComputedStyle(document.documentElement)
           .getPropertyValue('--accent-rgb')
           .trim() || '43, 109, 255';
+        const plotPoints = [{ date: chart.createdAt, remaining: chart.total }, ...history];
         ctx.strokeStyle = `rgba(${accentRgb}, 0.95)`;
         ctx.lineWidth = 2.4;
         ctx.beginPath();
-        ctx.moveTo(p, p);
-
-        history.forEach((point) => {
+        plotPoints.forEach((point, i) => {
           const d = new Date(point.date);
           const passed = Math.max(0, Math.min(spanDays, Math.ceil((d - startDate) / 86400000)));
           const x = p + (gw * passed / spanDays);
           const y = h - p - (gh * (point.remaining / Math.max(chart.total, 1)));
-          ctx.lineTo(x, y);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
         });
 
         ctx.stroke();
@@ -1147,14 +1166,26 @@
       if (!currentChart) return;
       const key = formatKey(selectedDate);
       const rec = currentChart.records[key] || { amount: 0, memo: '' };
+      const todayKey = formatKey(new Date());
+      const isFuture = key > todayKey;
       document.getElementById('recordLabel').textContent = `${formatJa(selectedDate)}の成果`;
       document.getElementById('recordInput').value = rec.amount || 0;
       document.getElementById('memoInput').value = rec.memo || '';
+      document.getElementById('recordInput').disabled = isFuture;
+      document.getElementById('memoInput').disabled = isFuture;
+      if (isFuture) {
+        document.getElementById('recordLabel').textContent = `${formatJa(selectedDate)}は未来日のため記録できません`;
+      }
     }
 
     function saveRecord() {
       if (!currentChart) return;
       const key = formatKey(selectedDate);
+      const todayKey = formatKey(new Date());
+      if (key > todayKey) {
+        alert('未来の日付には記録できません');
+        return;
+      }
       const amount = Math.max(0, Number(document.getElementById('recordInput').value) || 0);
       const memo = document.getElementById('memoInput').value.trim();
       currentChart.records[key] = { amount, memo };
@@ -1276,8 +1307,6 @@
       drawGraph(currentChart, history);
     });
 
-    document.getElementById('authDomainHint').textContent =
-      `現在のドメイン: ${window.location.hostname}（Firebase Authの許可ドメインに追加が必要）`;
 
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
