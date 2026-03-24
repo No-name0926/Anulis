@@ -85,6 +85,9 @@
       padding: 0 14px;
       display: none;
     }
+    .auth-screen.loading {
+      display: block;
+    }
 
     .auth-card {
       padding: 18px 16px;
@@ -246,13 +249,13 @@
     }
 
     .daily-caption {
-      font-size: 13px;
-      color: var(--text-soft);
+      font-size: 20px;
+      font-weight: 700;
       margin-bottom: 5px;
-      letter-spacing: .03em;
-      font-family: "Cormorant Garamond", "Yu Mincho", serif;
-      font-size: 18px;
-      color: color-mix(in srgb, var(--accent-deep) 72%, var(--text-soft));
+      letter-spacing: .06em;
+      font-family: "Playfair Display", "Cormorant Garamond", "Yu Mincho", serif;
+      color: color-mix(in srgb, var(--accent-deep) 84%, #1f2c44);
+      text-shadow: 0 1px 0 rgba(255,255,255,.75);
     }
 
     .daily-big {
@@ -370,6 +373,7 @@
     }
 
     .save:active { transform: scale(.99); }
+    .save:hover { background: color-mix(in srgb, var(--accent) 11%, white); }
 
     .swipe-hint {
       margin-top: 6px;
@@ -611,7 +615,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
@@ -633,6 +637,7 @@
     let currentUser = null;
     let firebaseReady = false;
     let installPromptEvent = null;
+    let authResolveTimer = null;
 
     const firebaseConfig = {
       apiKey: "AIzaSyAxH83j1DlrVgB_8wHxmCzXnHgAAOcHRkU",
@@ -702,15 +707,9 @@
     }
 
     function showAuthSetupHelp(providerName) {
-      const host = window.location.hostname;
       alert(
-        `${providerName}ログイン失敗: このドメインがFirebase Authで未許可です。\n\n` +
-        `追加するドメイン: ${host}\n\n` +
-        `手順:\n` +
-        `1) Firebase Console → Authentication → Settings\n` +
-        `2) Authorized domains → Add domain\n` +
-        `3) ${host} を追加して保存\n` +
-        `4) ページを再読み込みして再ログイン`
+        `${providerName}ログインに失敗しました。` +
+        `設定を確認して、もう一度お試しください。`
       );
     }
 
@@ -762,20 +761,27 @@
         setSignedInUI(true);
         return;
       }
+      const wasSignedIn = localStorage.getItem('anulisSignedIn') === '1';
+      if (wasSignedIn) setSignedInUI(true);
+      else document.getElementById('authScreen').classList.add('loading');
       firebase.initializeApp(firebaseConfig);
       if (firebase.analytics) firebase.analytics();
       auth = firebase.auth();
       db = firebase.database();
       firebaseReady = true;
       auth.onAuthStateChanged(async (user) => {
+        clearTimeout(authResolveTimer);
+        document.getElementById('authScreen').classList.remove('loading');
         currentUser = user;
         if (user) {
+          localStorage.setItem('anulisSignedIn', '1');
           setSignedInUI(true);
           await loadCloudData();
           renderThemeButtons();
           renderList();
         } else {
-          setSignedInUI(false);
+          localStorage.setItem('anulisSignedIn', '0');
+          authResolveTimer = setTimeout(() => setSignedInUI(false), 350);
         }
       });
     }
@@ -976,10 +982,13 @@
       gradient.addColorStop(0, `rgba(${accentRgb}, .35)`);
       gradient.addColorStop(1, `rgba(${accentRgb}, .04)`);
 
-      const points = history.length ? history : [{ remaining: chart.total }];
+      const points = [{ remaining: chart.total }, ...(history.length ? history : [])];
       ctx.beginPath();
       points.forEach((point, i) => {
-        const x = p + (gw * (i / Math.max(points.length - 1, 1)));
+        let x = p + (gw * (i / Math.max(points.length - 1, 1)));
+        if (i === 1 && point.remaining < chart.total && points.length > 2) {
+          x = p + (gw * (1 / Math.max(points.length, 2)));
+        }
         const y = h - p - (gh * (point.remaining / Math.max(chart.total, 1)));
         if (i === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
@@ -1184,8 +1193,7 @@
     function saveRecord() {
       if (!currentChart) return;
       const key = formatKey(selectedDate);
-      const todayKey = formatKey(new Date());
-      if (key > todayKey) {
+      if (dayDiff(selectedDate, new Date()) > 0 || key > formatKey(new Date())) {
         alert('未来の日付には記録できません');
         return;
       }
