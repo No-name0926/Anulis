@@ -228,6 +228,25 @@
 
     .chart-item { cursor: pointer; transition: transform .18s ease, box-shadow .18s ease; }
     .chart-item:active { transform: scale(.985); }
+    .archive-item {
+      cursor: default;
+      opacity: .9;
+    }
+    .archive-actions {
+      margin-top: 8px;
+      display: flex;
+      justify-content: flex-end;
+    }
+    .archive-restore-btn {
+      border: 1px solid var(--line);
+      background: var(--surface-strong);
+      color: var(--accent-deep);
+      border-radius: 10px;
+      padding: 6px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
 
     .title { font-size: 13px; font-weight: 650; color: var(--accent-deep); margin-bottom: 4px; letter-spacing: .02em; }
     .meta { font-size: 11px; color: var(--text-soft); line-height: 1.45; }
@@ -596,6 +615,10 @@
         </div>
       </div>
       <div id="chartList" class="list"></div>
+      <div id="archiveSection" class="glass card" style="display:none; margin-top:10px;">
+        <div class="title" style="margin-bottom:8px;">アーカイブ</div>
+        <div id="archiveList" class="list"></div>
+      </div>
       <div id="emptyState" class="glass card empty" style="display:none;">チャートがありません。<br>「＋ 新規」から作成してください。</div>
     </div>
 
@@ -704,6 +727,7 @@
         </div>
       </div>
       <button class="primary" onclick="saveEdit()">保存</button>
+      <button id="archiveToggleBtn" class="save" style="margin-top:8px" onclick="toggleArchiveCurrentChart()">アーカイブ</button>
       <button class="save" style="margin-top:8px" onclick="deleteChart()">削除</button>
       <button class="save" style="margin-top:8px" onclick="closeEditModal()">閉じる</button>
     </div>
@@ -746,6 +770,9 @@
     let installPromptEvent = null;
     let authResolveTimer = null;
     let authGateTimer = null;
+    let skipRecordAutosave = false;
+    let restoredViewState = false;
+    const VIEW_STATE_KEY = 'anulisViewState';
 
     const firebaseConfig = {
       apiKey: "AIzaSyAxH83j1DlrVgB_8wHxmCzXnHgAAOcHRkU",
@@ -826,6 +853,38 @@
       localStorage.setItem('anulisTheme', localStorage.getItem('anulisTheme') || 'blue');
     }
 
+    function saveViewState() {
+      const state = {
+        currentChartId: currentChart ? currentChart.id : null,
+        selectedDate: currentChart ? toDateInputValue(selectedDate) : null,
+        calendarBase: currentChart ? toDateInputValue(calendarBase) : null
+      };
+      localStorage.setItem(VIEW_STATE_KEY, JSON.stringify(state));
+    }
+
+    function clearViewState() {
+      localStorage.removeItem(VIEW_STATE_KEY);
+    }
+
+    function restoreViewStateIfNeeded() {
+      if (restoredViewState) return;
+      restoredViewState = true;
+      try {
+        const raw = localStorage.getItem(VIEW_STATE_KEY);
+        if (!raw) return;
+        const state = JSON.parse(raw);
+        if (!state?.currentChartId) return;
+        const chart = charts.find((c) => c.id === state.currentChartId && !c.archived);
+        if (!chart) return;
+        showChart(chart.id, {
+          selectedDate: state.selectedDate,
+          calendarBase: state.calendarBase
+        });
+      } catch (e) {
+        console.warn('view state restore failed', e);
+      }
+    }
+
     async function saveCloudData() {
       if (!firebaseReady || !currentUser || !db) return;
       const username = currentUser.displayName || 'user';
@@ -899,6 +958,7 @@
           await loadCloudData();
           renderThemeButtons();
           renderList();
+          restoreViewStateIfNeeded();
         } else {
           localStorage.setItem('anulisSignedIn', '0');
           const delay = wasSignedIn ? 2600 : 450;
@@ -1054,6 +1114,7 @@
         endDate,
         total,
         unit,
+        archived: false,
         createdAt: new Date().toISOString(),
         records: {}
       });
@@ -1103,17 +1164,31 @@
 
     function renderList() {
       const list = document.getElementById('chartList');
+      const archiveSection = document.getElementById('archiveSection');
+      const archiveList = document.getElementById('archiveList');
       const empty = document.getElementById('emptyState');
       list.innerHTML = '';
+      archiveList.innerHTML = '';
+      archiveSection.style.display = 'none'
 
       if (charts.length === 0) {
         empty.style.display = 'block';
         return;
       }
 
-      empty.style.display = 'none';
+      const activeCharts = charts.filter((chart) => !chart.archived);
+      const archivedCharts = charts.filter((chart) => chart.archived);
+
+      if (activeCharts.length === 0) {
+        empty.style.display = 'block';
+        empty.innerHTML = '表示中のチャートがありません。<br>アーカイブを復元するか「＋ 新規」から作成してください。';
+      } else {
+        empty.style.display = 'none';
+        empty.innerHTML = 'チャートがありません。<br>「＋ 新規」から作成してください。';
+      }
+      
       let hadSanitized = false;
-      charts.forEach((chart, idx) => {
+      activeCharts.forEach((chart, idx) => {
         if (sanitizeChartRecords(chart)) hadSanitized = true;
         const { done } = computeProgress(chart);
         const p = chart.total ? Math.round((done / chart.total) * 100) : 0;
@@ -1133,6 +1208,25 @@
         list.appendChild(item);
         drawMiniGraph(item.querySelector('.mini-canvas'), chart);
       });
+
+      archivedCharts.forEach((chart, idx) => {
+        const { done } = computeProgress(chart);
+        const start = getChartStart(chart);
+        const end = getChartEnd(chart);
+        const item = document.createElement('div');
+        item.className = 'glass card archive-item';
+        item.style.animationDelay = `${idx * 0.03}s`;
+        item.innerHTML = `
+          <div class="title">${chart.name}</div>
+          <div class="meta"><span class="due-date">${start.getMonth() + 1}/${start.getDate()} - ${end.getMonth() + 1}/${end.getDate()}</span> ・ ${done}/${chart.total}${chart.unit}</div>
+          <div class="archive-actions">
+            <button class="archive-restore-btn" onclick="restoreChart(${chart.id})">復元</button>
+          </div>
+        `;
+        archiveList.appendChild(item);
+      });
+
+      if (archivedCharts.length > 0) archiveSection.style.display = 'block';
 
       if (hadSanitized) {
         saveLocalData();
@@ -1184,9 +1278,10 @@
       ctx.fill();
     }
 
-    function showChart(id) {
+    function showChart(id, options = {}) {
       currentChart = charts.find((c) => c.id === id);
       if (!currentChart) return;
+      if (currentChart.archived) return;
 
       document.getElementById('homeScreen').style.display = 'none';
       document.getElementById('chartScreen').style.display = 'block';
@@ -1194,8 +1289,16 @@
       const today = normalizeDay(new Date());
       const chartStart = getChartStart(currentChart);
       const chartEnd = getChartEnd(currentChart);
-      selectedDate = today < chartStart ? chartStart : (today > chartEnd ? chartEnd : today);
-      calendarBase = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
+      const restoredSelected = options.selectedDate ? normalizeDay(options.selectedDate) : null;
+      const inRangeSelected = restoredSelected && restoredSelected >= chartStart && restoredSelected <= chartEnd;
+      selectedDate = inRangeSelected
+        ? restoredSelected
+        : (today < chartStart ? chartStart : (today > chartEnd ? chartEnd : today));
+      const restoredCalendar = options.calendarBase ? normalizeDay(options.calendarBase) : null;
+      calendarBase = restoredCalendar
+        ? new Date(restoredCalendar.getFullYear(), restoredCalendar.getMonth(), 1)
+        : new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
+      saveViewState();
       updateChartUI();
     }
 
@@ -1203,6 +1306,7 @@
       currentChart = null;
       document.getElementById('chartScreen').style.display = 'none';
       document.getElementById('homeScreen').style.display = 'block';
+      clearViewState();
       renderList();
     }
 
@@ -1355,6 +1459,7 @@
           if (d.getMonth() !== calendarBase.getMonth()) {
             calendarBase = new Date(d.getFullYear(), d.getMonth(), 1);
           }
+          saveViewState();
           renderCalendar();
           loadRecord();
         };
@@ -1365,6 +1470,7 @@
 
     function changeMonth(offset) {
       calendarBase.setMonth(calendarBase.getMonth() + offset);
+      saveViewState();
       renderCalendar();
     }
 
@@ -1376,9 +1482,11 @@
       const endKey = toDateInputValue(getChartEnd(currentChart));
       const isFuture = key > todayKey();
       const isOutOfRange = key < startKey || key > endKey;
+      skipRecordAutosave = true;
       document.getElementById('recordLabel').textContent = `${formatJa(selectedDate)}の成果`;
       document.getElementById('recordInput').value = rec.amount || 0;
       document.getElementById('memoInput').value = rec.memo || '';
+      skipRecordAutosave = false;
       document.getElementById('recordInput').disabled = isFuture || isOutOfRange;
       document.getElementById('memoInput').disabled = isFuture || isOutOfRange;
       document.querySelector('#calendarCard .save').disabled = isFuture || isOutOfRange;
@@ -1389,13 +1497,13 @@
       }
     }
 
-    function saveRecord() {
+    function saveRecord(options = {}) {
       if (!currentChart) return;
       const key = formatKey(selectedDate);
       const startKey = toDateInputValue(getChartStart(currentChart));
       const endKey = toDateInputValue(getChartEnd(currentChart));
       if (key < startKey || key > endKey) {
-        alert('設定した期間外の日付には記録できません');
+        if (!options.silent) alert('設定した期間外の日付には記録できません');
         return;
       }
       if (dayDiff(selectedDate, new Date()) > 0 || key > todayKey()) {
@@ -1403,7 +1511,7 @@
         return;
       }
       const amount = Math.max(0, Number(document.getElementById('recordInput').value) || 0);
-      const memo = document.getElementById('memoInput').value.trim();
+      const memo = document.getElementById('memoInput').value;
       if (amount === 0 && !memo) {
         delete currentChart.records[key];
       } else {
@@ -1411,7 +1519,12 @@
       }
       saveLocalData();
       saveCloudData();
-      updateChartUI();
+      if (options.refresh !== false) updateChartUI();
+    }
+
+    function handleRecordAutoSave() {
+      if (skipRecordAutosave) return;
+      saveRecord({ silent: true, refresh: false });
     }
 
     function openEditModal() {
@@ -1420,6 +1533,7 @@
       document.getElementById('editStart').value = toDateInputValue(getChartStart(currentChart));
       document.getElementById('editEnd').value = toDateInputValue(getChartEnd(currentChart));
       document.getElementById('editTotal').value = currentChart.total;
+      document.getElementById('archiveToggleBtn').textContent = currentChart.archived ? 'アーカイブ解除' : 'アーカイブ';
       document.getElementById('editModal').style.display = 'flex';
     }
 
@@ -1463,6 +1577,28 @@
       closeChart();
     }
 
+    function toggleArchiveCurrentChart() {
+      if (!currentChart) return;
+      currentChart.archived = !currentChart.archived;
+      saveLocalData();
+      saveCloudData();
+      closeEditModal();
+      if (currentChart.archived) {
+        closeChart();
+      } else {
+        updateChartUI();
+      }
+    }
+
+    function restoreChart(chartId) {
+      const chart = charts.find((c) => c.id === chartId);
+      if (!chart) return;
+      chart.archived = false;
+      saveLocalData();
+      saveCloudData();
+      renderList();
+    }
+    
     function switchChartWithAnimation(targetId, direction) {
       if (isSwitchingChart) return;
       const screen = document.getElementById('chartScreen');
@@ -1570,9 +1706,12 @@
     settingsModal.addEventListener('touchstart', (e) => {
       if (e.target === e.currentTarget) closeSettingsModal();
     });
+    document.getElementById('recordInput').addEventListener('input', handleRecordAutoSave);
+    document.getElementById('memoInput').addEventListener('input', handleRecordAutoSave);
 
     renderThemeButtons();
     renderList();
+    restoreViewStateIfNeeded();
     initFirebaseAuth();
   </script>
 </body>
