@@ -249,6 +249,27 @@
     }
 
     .title { font-size: 13px; font-weight: 650; color: var(--accent-deep); margin-bottom: 4px; letter-spacing: .02em; }
+    .title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    .chart-chip {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: rgba(var(--accent-rgb), .14);
+      color: var(--accent-deep);
+      white-space: nowrap;
+    }
+    .card-accent {
+      border-left: 4px solid rgba(var(--accent-rgb), .42);
+      padding-left: 9px;
+    }
     .meta { font-size: 11px; color: var(--text-soft); line-height: 1.45; }
     .meta .due-date {
       display: inline-flex;
@@ -626,7 +647,10 @@
       <div class="chart-head">
         <button class="icon-btn" onclick="closeChart()">← 戻る</button>
         <div class="chart-name" id="chartTitle">-</div>
-        <button class="icon-btn" onclick="openEditModal()">編集</button>
+        <div style="display:flex; gap:6px;">
+          <button class="icon-btn" onclick="toggleArchiveCurrentChart()">📦</button>
+          <button class="icon-btn" onclick="openEditModal()">編集</button>
+        </div>
       </div>
 
       <div class="glass card graph-wrap">
@@ -668,6 +692,7 @@
       </div>
 
       <div class="swipe-hint">←→ スワイプで別チャートへ</div>
+      <div class="swipe-hint" style="margin-top:2px;">📦でアーカイブ / ホーム下部の「アーカイブ」から復元</div>
     </div>
   </div>
 
