@@ -688,7 +688,7 @@
         </div>
 
         <input id="memoInput" class="memo" placeholder="メモを書く" />
-        <button class="save" onclick="saveRecord()">保存</button>
+        <button class="save" onclick="saveRecord()">手動保存</button>
       </div>
 
       <div class="swipe-hint">←→ スワイプで別チャートへ</div>
@@ -857,7 +857,6 @@
     function openSettingsModal() {
       document.getElementById('settingsModal').style.display = 'flex';
     }
-
     function closeSettingsModal() {
       document.getElementById('settingsModal').style.display = 'none';
     }
@@ -1187,6 +1186,29 @@
       return { done, history };
     }
 
+    function getProgressLabel(percent) {
+      if (percent >= 100) return 'COMPLETE';
+      if (percent >= 70) return 'GOOD';
+      if (percent >= 30) return 'KEEP';
+      return 'START';
+    }
+
+    function getCardAccentStyle(idx, archived = false) {
+      const accents = [
+        'linear-gradient(140deg, rgba(255,255,255,.93), rgba(139,187,255,.16))',
+        'linear-gradient(140deg, rgba(255,255,255,.93), rgba(255,173,204,.15))',
+        'linear-gradient(140deg, rgba(255,255,255,.93), rgba(169,232,194,.16))',
+        'linear-gradient(140deg, rgba(255,255,255,.93), rgba(255,214,153,.17))'
+      ];
+      const bg = archived
+        ? 'linear-gradient(140deg, rgba(255,255,255,.9), rgba(183,183,183,.14))'
+        : accents[idx % accents.length];
+      const border = archived
+        ? 'rgba(110,110,110,.25)'
+        : 'rgba(var(--accent-rgb), .32)';
+      return `background:${bg}; border-left:4px solid ${border};`;
+    }
+
     function renderList() {
       const list = document.getElementById('chartList');
       const archiveSection = document.getElementById('archiveSection');
@@ -1194,7 +1216,7 @@
       const empty = document.getElementById('emptyState');
       list.innerHTML = '';
       archiveList.innerHTML = '';
-      archiveSection.style.display = 'none'
+      archiveSection.style.display = 'none';
 
       if (charts.length === 0) {
         empty.style.display = 'block';
@@ -1206,12 +1228,12 @@
 
       if (activeCharts.length === 0) {
         empty.style.display = 'block';
-        empty.innerHTML = '表示中のチャートがありません。<br>アーカイブを復元するか「＋ 新規」から作成してください。';
+        empty.innerHTML = '表示中のチャートがありません。<br>アーカイブを復元するか「＋ 新規」か作成してください。';
       } else {
         empty.style.display = 'none';
         empty.innerHTML = 'チャートがありません。<br>「＋ 新規」から作成してください。';
       }
-      
+
       let hadSanitized = false;
       activeCharts.forEach((chart, idx) => {
         if (sanitizeChartRecords(chart)) hadSanitized = true;
@@ -1221,11 +1243,16 @@
         const end = getChartEnd(chart);
 
         const item = document.createElement('div');
-        item.className = 'glass card chart-item';
+        item.className = 'glass card chart-item card-accent';
         item.style.animationDelay = `${idx * 0.03}s`;
+        item.style.cssText += getCardAccentStyle(idx);
         item.onclick = () => showChart(chart.id);
+        const status = getProgressLabel(p);
         item.innerHTML = `
-          <div class="title">${chart.name}</div>
+          <div class="title-row">
+            <div class="title">${chart.name}</div>
+            <div class="chart-chip">${status}</div>
+          </div>
           <div class="meta"><span class="due-date">${start.getMonth() + 1}/${start.getDate()} - ${end.getMonth() + 1}/${end.getDate()}</span> ・ ${done}/${chart.total}${chart.unit}</div>
           <div class="progress-track"><div class="progress-bar" style="width:${p}%"></div></div>
           <canvas class="mini-canvas"></canvas>
@@ -1239,10 +1266,14 @@
         const start = getChartStart(chart);
         const end = getChartEnd(chart);
         const item = document.createElement('div');
-        item.className = 'glass card archive-item';
+        item.className = 'glass card archive-item card-accent';
         item.style.animationDelay = `${idx * 0.03}s`;
+        item.style.cssText += getCardAccentStyle(idx, true);
         item.innerHTML = `
-          <div class="title">${chart.name}</div>
+          <div class="title-row">
+            <div class="title">${chart.name}</div>
+            <div class="chart-chip">ARCHIVE</div>
+          </div>
           <div class="meta"><span class="due-date">${start.getMonth() + 1}/${start.getDate()} - ${end.getMonth() + 1}/${end.getDate()}</span> ・ ${done}/${chart.total}${chart.unit}</div>
           <div class="archive-actions">
             <button class="archive-restore-btn" onclick="restoreChart(${chart.id})">復元</button>
@@ -1528,11 +1559,11 @@
       const startKey = toDateInputValue(getChartStart(currentChart));
       const endKey = toDateInputValue(getChartEnd(currentChart));
       if (key < startKey || key > endKey) {
-        if (!options.silent) alert('設定した期間外の日付には記録できません');
+        if (!options.silent) alert('設定した期間外の日には記録できません');
         return;
       }
       if (dayDiff(selectedDate, new Date()) > 0 || key > todayKey()) {
-        alert('未来の日付には記録できません');
+        if (!options.silent) alert('未来の日付には記録できません');
         return;
       }
       const amount = Math.max(0, Number(document.getElementById('recordInput').value) || 0);
@@ -1604,7 +1635,10 @@
 
     function toggleArchiveCurrentChart() {
       if (!currentChart) return;
-      currentChart.archived = !currentChart.archived;
+      const nextArchived = !currentChart.archived;
+      const message = nextArchived ? 'このチャートをアーカイブしますか？' : 'このチャートをアーカイブ解除しますか？';
+      if (!confirm(message)) return;
+      currentChart.archived = nextArchived;
       saveLocalData();
       saveCloudData();
       closeEditModal();
@@ -1623,7 +1657,7 @@
       saveCloudData();
       renderList();
     }
-    
+
     function switchChartWithAnimation(targetId, direction) {
       if (isSwitchingChart) return;
       const screen = document.getElementById('chartScreen');
