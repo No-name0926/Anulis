@@ -154,9 +154,11 @@
     .brand {
       text-align: center;
       font-size: 17px;
-      font-weight: 650;
+      font-weight: 700;
       letter-spacing: .08em;
       color: var(--accent-deep);
+      font-family: "Playfair Display", "Cormorant Garamond", serif;
+      text-shadow: 0 3px 10px rgba(var(--accent-rgb), 0.28);
     }
 
     .glass {
@@ -517,6 +519,24 @@
       letter-spacing: .04em;
     }
 
+    .archive-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      gap: 8px;
+    }
+
+    .archive-close {
+      border: 1px solid var(--line);
+      background: var(--surface-strong);
+      border-radius: 10px;
+      padding: 4px 9px;
+      font-size: 11px;
+      cursor: pointer;
+      color: var(--text-soft);
+    }
+
     @keyframes pulse {
       0%, 100% { opacity: .55; }
       50% { opacity: 1; }
@@ -629,7 +649,7 @@
     <div id="homeScreen">
       <div class="topbar">
         <button class="icon-btn" onclick="openSettingsModal()">☰</button>
-        <div class="brand">Anulis</div>
+        <div class="brand">👑 Anulis</div>
         <div style="display:flex; gap:6px; justify-content:flex-end;">
           <button id="installBtn" class="icon-btn" style="display:none;" onclick="installApp()">⬇︎ インストール</button>
           <button class="icon-btn" onclick="openCreateModal()">＋ 新規</button>
@@ -637,7 +657,10 @@
       </div>
       <div id="chartList" class="list"></div>
       <div id="archiveSection" class="glass card" style="display:none; margin-top:10px;">
-        <div class="title" style="margin-bottom:8px;">アーカイブ</div>
+        <div class="archive-head">
+          <div class="title">アーカイブ</div>
+          <button id="archiveCloseBtn" class="archive-close" onclick="toggleArchiveSection()">閉じる</button>
+        </div>
         <div id="archiveList" class="list"></div>
       </div>
       <div id="emptyState" class="glass card empty" style="display:none;">チャートがありません。<br>「＋ 新規」から作成してください。</div>
@@ -785,8 +808,6 @@
     const weekLabels = ['日', '月', '火', '水', '木', '金', '土'];
     let swipeStartX = null;
     let swipeStartY = null;
-    let calendarSwipeStartX = null;
-    let calendarSwipeStartY = null;
     let isSwitchingChart = false;
     let auth = null;
     let db = null;
@@ -798,6 +819,20 @@
     let skipRecordAutosave = false;
     let restoredViewState = false;
     const VIEW_STATE_KEY = 'anulisViewState';
+    const LOCAL_META_KEY = 'anulisLocalMeta';
+    let archiveSectionClosed = false;
+    let cloudSaveTimer = null;
+    let localMeta = (() => {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(LOCAL_META_KEY) || '{}');
+        return {
+          updatedAt: Number(parsed.updatedAt) || 0,
+          pendingSync: Boolean(parsed.pendingSync)
+        };
+      } catch (_) {
+        return { updatedAt: 0, pendingSync: false };
+      }
+    })();
 
     const firebaseConfig = {
       apiKey: "AIzaSyAxH83j1DlrVgB_8wHxmCzXnHgAAOcHRkU",
@@ -811,6 +846,7 @@
     };
 
     const themes = {
+      royal: { label: '王族', bg: '#f7f4ff', bgDeep: '#ece3ff', line: '#d4c1ff', text: '#3d2868', textSoft: '#6f5b9a', accent: '#6e44ff', accentDeep: '#4723b8', accentSoft: '#c3a9ff', accentRgb: '110, 68, 255', pattern: 'repeating-linear-gradient(45deg, rgba(110,68,255,.16) 0 7px, transparent 7px 14px), radial-gradient(circle at 18px 18px, rgba(226,196,111,.36) 0 2px, transparent 2px)' },
       blue: { label: '青', bg: '#ecf7ff', bgDeep: '#d6eeff', line: '#bfe3ff', text: '#1f4f73', textSoft: '#4c7ea7', accent: '#2f9dff', accentDeep: '#0a71d1', accentSoft: '#9ed5ff', accentRgb: '47, 157, 255', pattern: 'repeating-linear-gradient(135deg, rgba(47,157,255,.17) 0 5px, transparent 5px 12px)' },
       red: { label: '赤', bg: '#fff0f1', bgDeep: '#ffe3e6', line: '#f6cad1', text: '#6f2631', textSoft: '#aa6b76', accent: '#e1475e', accentDeep: '#b62841', accentSoft: '#f7a7b5', accentRgb: '225, 71, 94', pattern: 'radial-gradient(circle at 8px 8px, rgba(225,71,94,.25) 0 2px, transparent 2px)' },
       yellow: { label: '黄', bg: '#fff9e8', bgDeep: '#fff3cf', line: '#f7e6ab', text: '#6f5513', textSoft: '#a0843f', accent: '#d9a500', accentDeep: '#a77e00', accentSoft: '#f6d76a', accentRgb: '217, 165, 0', pattern: 'repeating-conic-gradient(from 18deg, rgba(217,165,0,.15) 0 8deg, transparent 8deg 25deg)' },
@@ -821,7 +857,7 @@
     };
 
     function applyTheme(themeName) {
-      const key = themes[themeName] ? themeName : 'blue';
+      const key = themes[themeName] ? themeName : 'royal';
       const theme = themes[key];
       const root = document.documentElement;
       root.style.setProperty('--bg', theme.bg);
@@ -838,7 +874,7 @@
       localStorage.setItem('anulisTheme', key);
       if (!currentChart) renderList();
       if (currentChart) updateChartUI();
-      saveCloudData();
+      queueCloudSave(300);
 
       document.querySelectorAll('.theme-btn').forEach((btn) => {
         btn.classList.toggle('active', btn.dataset.theme === key);
@@ -851,7 +887,7 @@
       grid.innerHTML = Object.entries(themes).map(([key, val]) => (
         `<button class="theme-btn" data-theme="${key}" onclick="applyTheme('${key}')">${val.label}</button>`
       )).join('');
-      applyTheme(localStorage.getItem('anulisTheme') || 'blue');
+      applyTheme(localStorage.getItem('anulisTheme') || 'royal');
     }
 
     function openSettingsModal() {
@@ -872,9 +908,26 @@
       );
     }
 
-    function saveLocalData() {
+    function persistLocalMeta() {
+      localStorage.setItem(LOCAL_META_KEY, JSON.stringify(localMeta));
+    }
+
+    function queueCloudSave(delay = 900) {
+      clearTimeout(cloudSaveTimer);
+      cloudSaveTimer = setTimeout(() => {
+        saveCloudData();
+      }, delay);
+    }
+
+    function saveLocalData({ dirty = true } = {}) {
       localStorage.setItem('anulisCharts', JSON.stringify(charts));
-      localStorage.setItem('anulisTheme', localStorage.getItem('anulisTheme') || 'blue');
+      localStorage.setItem('anulisTheme', localStorage.getItem('anulisTheme') || 'royal');
+      if (dirty) {
+        localMeta.updatedAt = Date.now();
+        localMeta.pendingSync = true;
+        persistLocalMeta();
+        queueCloudSave();
+      }
     }
 
     function saveViewState() {
@@ -911,14 +964,17 @@
 
     async function saveCloudData() {
       if (!firebaseReady || !currentUser || !db) return;
+      if (typeof navigator !== 'undefined' && navigator.onLine === false) return;
       const username = currentUser.displayName || 'user';
       try {
         await db.ref(`users/${currentUser.uid}`).set({
           username,
           charts,
-          theme: localStorage.getItem('anulisTheme') || 'blue',
-          updatedAt: Date.now()
+          theme: localStorage.getItem('anulisTheme') || 'royal',
+          updatedAt: localMeta.updatedAt || Date.now()
         });
+        localMeta.pendingSync = false;
+        persistLocalMeta();
       } catch (e) {
         console.warn('cloud save failed', e);
       }
@@ -930,9 +986,18 @@
         const snap = await db.ref(`users/${currentUser.uid}`).once('value');
         const data = snap.val();
         if (data && typeof data === 'object') {
-          charts = Array.isArray(data.charts) ? data.charts : [];
-          if (data.theme) localStorage.setItem('anulisTheme', data.theme);
-          saveLocalData();
+          const cloudUpdatedAt = Number(data.updatedAt) || 0;
+          const shouldKeepLocal = localMeta.pendingSync || localMeta.updatedAt > cloudUpdatedAt;
+          if (shouldKeepLocal) {
+            await saveCloudData();
+          } else {
+            charts = Array.isArray(data.charts) ? data.charts : [];
+            if (data.theme) localStorage.setItem('anulisTheme', data.theme);
+            localMeta.updatedAt = cloudUpdatedAt;
+            localMeta.pendingSync = false;
+            persistLocalMeta();
+            saveLocalData({ dirty: false });
+          }
         } else {
           // クラウドが空なら、既存ローカルデータを初回同期
           await saveCloudData();
@@ -1144,7 +1209,6 @@
       });
 
       saveLocalData();
-      saveCloudData();
       closeCreateModal();
       renderList();
     }
@@ -1207,6 +1271,12 @@
         ? 'rgba(110,110,110,.25)'
         : 'rgba(var(--accent-rgb), .32)';
       return `background:${bg}; border-left:4px solid ${border};`;
+    }
+
+
+    function toggleArchiveSection() {
+      archiveSectionClosed = !archiveSectionClosed;
+      renderList();
     }
 
     function renderList() {
@@ -1282,11 +1352,15 @@
         archiveList.appendChild(item);
       });
 
-      if (archivedCharts.length > 0) archiveSection.style.display = 'block';
+      if (archivedCharts.length > 0) {
+        archiveSection.style.display = 'block';
+        archiveList.style.display = archiveSectionClosed ? 'none' : 'grid';
+        const btn = document.getElementById('archiveCloseBtn');
+        if (btn) btn.textContent = archiveSectionClosed ? '開く' : '閉じる';
+      }
 
       if (hadSanitized) {
         saveLocalData();
-        saveCloudData();
       }
     }
 
@@ -1314,24 +1388,30 @@
       gradient.addColorStop(0, `rgba(${accentRgb}, .35)`);
       gradient.addColorStop(1, `rgba(${accentRgb}, .04)`);
 
-      const points = [{ remaining: chart.total }, ...(history.length ? history : [])];
+      const firstRemaining = chart.total;
+      const latestRemaining = history.length ? history[history.length - 1].remaining : chart.total;
+      const trend = Math.max(-1, Math.min(1, (firstRemaining - latestRemaining) / Math.max(chart.total, 1)));
+      const amp = Math.max(0.18, Math.abs(trend)) * gh * 0.95;
+      const centerY = p + gh * 0.52;
+      const endY = trend >= 0 ? centerY - amp : centerY + amp;
+      const startY = trend >= 0 ? centerY + amp * 0.35 : centerY - amp * 0.35;
+
       ctx.beginPath();
-      ctx.moveTo(p, p);
-      points.forEach((point, i) => {
-        if (i === 0) return;
-        const x = p + (gw * (i / Math.max(points.length - 1, 1)));
-        const y = h - p - (gh * (point.remaining / Math.max(chart.total, 1)));
-        ctx.lineTo(x, y);
-      });
-      ctx.strokeStyle = `rgba(${accentRgb}, .95)`;
-      ctx.lineWidth = 2;
+      ctx.moveTo(p + 4, startY);
+      ctx.lineTo(p + gw - 4, endY);
+      ctx.strokeStyle = trend >= 0 ? `rgba(${accentRgb}, .95)` : 'rgba(210, 80, 95, .95)';
+      ctx.lineWidth = 3;
       ctx.stroke();
 
-      ctx.lineTo(p + gw, h - p);
-      ctx.lineTo(p, h - p);
-      ctx.closePath();
+      const arrow = trend >= 0 ? -1 : 1;
+      ctx.beginPath();
+      ctx.moveTo(p + gw - 9, endY + 7 * arrow);
+      ctx.lineTo(p + gw - 2, endY);
+      ctx.lineTo(p + gw - 9, endY - 7 * arrow);
+      ctx.stroke();
+
       ctx.fillStyle = gradient;
-      ctx.fill();
+      ctx.fillRect(p + 2, Math.min(startY, endY), gw - 4, Math.abs(endY - startY));
     }
 
     function showChart(id, options = {}) {
@@ -1370,7 +1450,6 @@
       if (!currentChart) return;
       if (sanitizeChartRecords(currentChart)) {
         saveLocalData();
-        saveCloudData();
       }
 
       const { done, history } = computeProgress(currentChart);
@@ -1574,7 +1653,6 @@
         currentChart.records[key] = { amount, memo };
       }
       saveLocalData();
-      saveCloudData();
       if (options.refresh !== false) updateChartUI();
     }
 
@@ -1618,7 +1696,6 @@
       currentChart.endDate = endDate;
       currentChart.total = total;
       saveLocalData();
-      saveCloudData();
       closeEditModal();
       updateChartUI();
     }
@@ -1628,7 +1705,6 @@
       if (!confirm('削除しますか？')) return;
       charts = charts.filter((c) => c.id !== currentChart.id);
       saveLocalData();
-      saveCloudData();
       closeEditModal();
       closeChart();
     }
@@ -1640,7 +1716,6 @@
       if (!confirm(message)) return;
       currentChart.archived = nextArchived;
       saveLocalData();
-      saveCloudData();
       closeEditModal();
       if (currentChart.archived) {
         closeChart();
@@ -1654,7 +1729,6 @@
       if (!chart) return;
       chart.archived = false;
       saveLocalData();
-      saveCloudData();
       renderList();
     }
 
@@ -1677,12 +1751,13 @@
     }
 
     function showSiblingChart(direction) {
-      if (!currentChart || charts.length < 2 || isSwitchingChart) return;
-      const idx = charts.findIndex((c) => c.id === currentChart.id);
+      const activeCharts = charts.filter((chart) => !chart.archived);
+      if (!currentChart || activeCharts.length < 2 || isSwitchingChart) return;
+      const idx = activeCharts.findIndex((c) => c.id === currentChart.id);
       if (idx < 0) return;
       const next = idx + direction;
-      if (next < 0 || next >= charts.length) return;
-      switchChartWithAnimation(charts[next].id, direction);
+      if (next < 0 || next >= activeCharts.length) return;
+      switchChartWithAnimation(activeCharts[next].id, direction);
     }
 
     const chartScreen = document.getElementById('chartScreen');
@@ -1705,30 +1780,19 @@
       showSiblingChart(dx < 0 ? 1 : -1);
     }, { passive: true });
 
-    const calendarCard = document.getElementById('calendarCard');
-    calendarCard.addEventListener('touchstart', (e) => {
-      const touch = e.changedTouches[0];
-      calendarSwipeStartX = touch.clientX;
-      calendarSwipeStartY = touch.clientY;
-    }, { passive: true });
-
-    calendarCard.addEventListener('touchend', (e) => {
-      if (calendarSwipeStartX === null) return;
-      const touch = e.changedTouches[0];
-      const dx = touch.clientX - calendarSwipeStartX;
-      const dy = touch.clientY - calendarSwipeStartY;
-      calendarSwipeStartX = null;
-      calendarSwipeStartY = null;
-      if (Math.abs(dx) < 45 || Math.abs(dx) < Math.abs(dy) * 1.1) return;
-      changeMonth(dx < 0 ? 1 : -1);
-    }, { passive: true });
-
     window.addEventListener('resize', () => {
       if (!currentChart) return;
       const { history } = computeProgress(currentChart);
       drawGraph(currentChart, history);
     });
 
+
+    window.addEventListener('online', () => {
+      if (localMeta.pendingSync) saveCloudData();
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && localMeta.pendingSync) saveCloudData();
+    });
 
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
