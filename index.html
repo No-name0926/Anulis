@@ -1611,6 +1611,8 @@
         const p = chart.total ? Math.round((done / chart.total) * 100) : 0;
         const start = getChartStart(chart);
         const end = getChartEnd(chart);
+        const today = normalizeDay(new Date());
+        const isExtended = today > end && done < chart.total;
 
         const item = document.createElement('div');
         item.className = 'glass card chart-item card-accent';
@@ -1618,10 +1620,16 @@
         item.style.cssText += getCardAccentStyle(idx);
         item.onclick = () => showChart(chart.id);
         const status = getProgressLabel(p);
+        
+        const extendedChip = isExtended ? '<div class="chart-chip" style="background: rgba(235, 77, 75, 0.15); color: #eb4d4b; border-color: rgba(235, 77, 75, 0.4);">延長</div>' : '';
+        
         item.innerHTML = `
           <div class="title-row">
             <div class="title">${chart.name}</div>
-            <div class="chart-chip">${status}</div>
+            <div style="display:flex; gap:6px;">
+              ${extendedChip}
+              <div class="chart-chip">${status}</div>
+            </div>
           </div>
           <div class="meta"><span class="due-date">${start.getMonth() + 1}/${start.getDate()} - ${end.getMonth() + 1}/${end.getDate()}</span> ・ ${done}/${chart.total}${chart.unit}</div>
           <div class="progress-track"><div class="progress-bar" style="width:${p}%"></div></div>
@@ -2010,19 +2018,25 @@
       const startKey = toDateInputValue(getChartStart(currentChart));
       const endKey = toDateInputValue(getChartEnd(currentChart));
       const isFuture = key > todayKey();
-      const isOutOfRange = key < startKey || key > endKey;
+      const isBeforeStart = key < startKey;
+      const isPastEnd = key > endKey;
       skipRecordAutosave = true;
       document.getElementById('recordLabel').textContent = `${formatJa(selectedDate)}の成果`;
       document.getElementById('recordInput').value = rec.amount || 0;
       document.getElementById('memoInput').value = rec.memo || '';
       skipRecordAutosave = false;
-      document.getElementById('recordInput').disabled = isFuture || isOutOfRange;
-      document.getElementById('memoInput').disabled = isFuture || isOutOfRange;
-      document.querySelector('#calendarCard .save').disabled = isFuture || isOutOfRange;
+      
+      const isDisabled = isFuture || isBeforeStart;
+      document.getElementById('recordInput').disabled = isDisabled;
+      document.getElementById('memoInput').disabled = isDisabled;
+      document.querySelector('#calendarCard .save').disabled = isDisabled;
+      
       if (isFuture) {
         document.getElementById('recordLabel').textContent = `${formatJa(selectedDate)}は未来日のため記録できません`;
-      } else if (isOutOfRange) {
-        document.getElementById('recordLabel').textContent = `${formatJa(selectedDate)}は期間外のため記録できません`;
+      } else if (isBeforeStart) {
+        document.getElementById('recordLabel').textContent = `${formatJa(selectedDate)}は開始前の日です`;
+      } else if (isPastEnd && !isFuture) {
+        document.getElementById('recordLabel').textContent = `${formatJa(selectedDate)}の成果 (延長)`;
       }
     }
 
@@ -2031,8 +2045,8 @@
       const key = formatKey(selectedDate);
       const startKey = toDateInputValue(getChartStart(currentChart));
       const endKey = toDateInputValue(getChartEnd(currentChart));
-      if (key < startKey || key > endKey) {
-        if (!options.silent) alert('設定した期間外の日には記録できません');
+      if (key < startKey) {
+        if (!options.silent) alert('開始日前の日には記録できません');
         return;
       }
       if (dayDiff(selectedDate, new Date()) > 0 || key > todayKey()) {
