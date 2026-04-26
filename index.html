@@ -2376,7 +2376,7 @@
       const originalEndDate = getChartEnd(chart);
       const today = normalizeDay(new Date());
       const displayEndDate = today > originalEndDate ? today : originalEndDate;
-      const spanDays = Math.max(1, Math.ceil((displayEndDate - startDate) / 86400000));
+      const spanDays = Math.max(1, Math.ceil((displayEndDate - startDate) / 86400000) + 1);
 
       // theme-adaptive colors
       const cs = getComputedStyle(document.documentElement);
