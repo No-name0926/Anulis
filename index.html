@@ -868,12 +868,529 @@
         transform: translateX(0);
       }
     }
+
+    /* ===== PREMIUM VISUAL ENHANCEMENTS ===== */
+
+    /* Shimmer highlight sweep on glass cards */
+    .glass::after {
+      content: "";
+      position: absolute;
+      top: -50%;
+      left: -60%;
+      width: 40%;
+      height: 200%;
+      background: linear-gradient(
+        105deg,
+        transparent 40%,
+        rgba(255, 255, 255, 0.35) 45%,
+        rgba(255, 255, 255, 0.55) 50%,
+        rgba(255, 255, 255, 0.35) 55%,
+        transparent 60%
+      );
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    .glass:hover::after {
+      animation: shimmerSweep 1.2s ease forwards;
+      opacity: 1;
+    }
+
+    @keyframes shimmerSweep {
+      0% { left: -60%; opacity: 1; }
+      100% { left: 120%; opacity: 0; }
+    }
+
+    /* Card hover lift & glow */
+    .chart-item {
+      cursor: pointer;
+      transition: transform .28s cubic-bezier(.22,.68,.36,1.2), 
+                  box-shadow .28s ease, 
+                  border-color .2s ease;
+    }
+
+    .chart-item:hover {
+      transform: translateY(-4px) scale(1.015);
+      box-shadow: var(--shadow), 
+                  0 16px 40px rgba(var(--accent-rgb), 0.18),
+                  0 0 0 1px rgba(var(--accent-rgb), 0.15);
+    }
+
+    .chart-item:active {
+      transform: scale(.985) translateY(0);
+      transition-duration: .1s;
+    }
+
+    /* Animated gradient border on focused cards */
+    .chart-item::after {
+      content: "";
+      position: absolute;
+      inset: -2px;
+      border-radius: inherit;
+      background: conic-gradient(
+        from var(--border-angle, 0deg),
+        rgba(var(--accent-rgb), 0.6),
+        rgba(var(--accent-rgb), 0.1) 25%,
+        transparent 50%,
+        rgba(var(--accent-rgb), 0.1) 75%,
+        rgba(var(--accent-rgb), 0.6) 100%
+      );
+      z-index: -1;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    .chart-item:hover::after {
+      opacity: 1;
+      animation: rotateBorder 3s linear infinite;
+    }
+
+    @property --border-angle {
+      syntax: "<angle>";
+      initial-value: 0deg;
+      inherits: false;
+    }
+
+    @keyframes rotateBorder {
+      to { --border-angle: 360deg; }
+    }
+
+    /* Progress bar glow pulse */
+    .progress-bar {
+      position: relative;
+      background: linear-gradient(90deg, 
+        rgba(var(--accent-rgb), .5) 0%, 
+        var(--accent) 60%,
+        rgba(var(--accent-rgb), .8) 100%);
+      background-size: 200% 100%;
+      animation: progressShimmer 2.5s ease-in-out infinite;
+    }
+
+    .progress-bar::after {
+      content: "";
+      position: absolute;
+      right: 0;
+      top: -3px;
+      width: 8px;
+      height: calc(100% + 6px);
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.7),
+                  0 0 24px rgba(var(--accent-rgb), 0.3);
+      opacity: 0.9;
+    }
+
+    @keyframes progressShimmer {
+      0%, 100% { background-position: 0% 0%; }
+      50% { background-position: 100% 0%; }
+    }
+
+    /* Button ripple effect */
+    .primary, .save, .icon-btn {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .primary::after, .save::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at var(--ripple-x, 50%) var(--ripple-y, 50%), 
+                    rgba(255,255,255,0.4) 0%, 
+                    transparent 60%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .primary:active::after, .save:active::after {
+      opacity: 1;
+      animation: rippleFade 0.5s ease-out;
+    }
+
+    @keyframes rippleFade {
+      0% { transform: scale(0.3); opacity: 1; }
+      100% { transform: scale(2); opacity: 0; }
+    }
+
+    /* Primary button enhanced gradient + shine */
+    .primary {
+      background: linear-gradient(135deg, 
+        rgba(var(--accent-rgb), .65) 0%, 
+        var(--accent) 50%,
+        rgba(var(--accent-rgb), .85) 100%);
+      background-size: 200% 200%;
+      animation: gradientShift 4s ease infinite;
+      letter-spacing: .04em;
+    }
+
+    .primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(var(--accent-rgb), 0.5), 
+                  0 0 0 1px rgba(var(--accent-rgb),.4),
+                  0 0 60px rgba(var(--accent-rgb), 0.15);
+    }
+
+    @keyframes gradientShift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    /* Save button soft hover */
+    .save {
+      transition: all .2s cubic-bezier(.22,.68,.36,1.2);
+      position: relative;
+    }
+
+    .save:hover {
+      background: rgba(var(--accent-rgb), 0.18);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(var(--accent-rgb), 0.15);
+    }
+
+    /* Calendar day button enhanced transitions */
+    .day-btn {
+      transition: all .2s cubic-bezier(.22,.68,.36,1.2);
+      position: relative;
+    }
+
+    .day-btn:not(.future):not(.other):hover {
+      background: rgba(var(--accent-rgb), .16);
+      transform: scale(1.18);
+      box-shadow: 0 3px 12px rgba(var(--accent-rgb), 0.2);
+    }
+
+    .day-btn.active {
+      animation: daySelect 0.35s cubic-bezier(.22,.68,.36,1.2);
+    }
+
+    @keyframes daySelect {
+      0% { transform: scale(0.85); }
+      60% { transform: scale(1.12); }
+      100% { transform: scale(1); }
+    }
+
+    /* Extended day - pulsing dashed border */
+    .day-btn.extended {
+      animation: extendedPulse 2.5s ease-in-out infinite;
+    }
+
+    @keyframes extendedPulse {
+      0%, 100% { border-color: rgba(var(--accent-rgb), 0.25); background: rgba(var(--accent-rgb), 0.05); }
+      50% { border-color: rgba(var(--accent-rgb), 0.55); background: rgba(var(--accent-rgb), 0.12); }
+    }
+
+    /* KPI value counter animation */
+    .kpi-value, .daily-big {
+      transition: all 0.3s ease;
+    }
+
+    .kpi-value:hover {
+      transform: scale(1.08);
+      text-shadow: 0 0 20px rgba(var(--accent-rgb), 0.4), var(--theme-text-shadow);
+    }
+
+    /* Progress card shimmer */
+    .progress-card {
+      transition: transform .25s ease, box-shadow .25s ease;
+    }
+
+    .progress-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow), 0 8px 24px rgba(var(--accent-rgb), 0.12);
+    }
+
+    /* Daily hero card glow */
+    .daily-hero {
+      transition: transform .25s ease, box-shadow .25s ease;
+    }
+
+    .daily-hero:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow), 0 8px 24px rgba(var(--accent-rgb), 0.12);
+    }
+
+    /* Modal enhanced backdrop & entrance */
+    .modal {
+      transition: backdrop-filter 0.3s ease;
+    }
+
+    .modal[style*="flex"] .modal-box {
+      animation: modalSlideUp 0.35s cubic-bezier(.22,.68,.36,1.2);
+    }
+
+    @keyframes modalSlideUp {
+      0% {
+        transform: translateY(40px) scale(0.96);
+        opacity: 0;
+      }
+      100% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+      }
+    }
+
+    /* Input field focus glow */
+    .input {
+      transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+    }
+
+    .input:focus {
+      border-color: rgba(var(--accent-rgb), 0.5);
+      box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.1), 
+                  0 2px 8px rgba(var(--accent-rgb), 0.15);
+      background: rgba(255,255,255,0.12);
+      outline: none;
+    }
+
+    /* Record input focus animation */
+    .record-input {
+      transition: border-color .2s ease, transform .15s ease;
+    }
+
+    .record-input:focus {
+      border-bottom-color: var(--accent);
+      transform: scale(1.05);
+      text-shadow: 0 0 12px rgba(var(--accent-rgb), 0.25);
+    }
+
+    /* Memo input focus */
+    .memo {
+      transition: border-color .2s ease, padding .2s ease;
+    }
+
+    .memo:focus {
+      border-bottom-color: var(--accent);
+      padding-left: 4px;
+    }
+
+    /* Graph card hover */
+    .graph-wrap {
+      transition: transform .3s ease;
+    }
+
+    .graph-wrap:hover {
+      transform: scale(1.01);
+    }
+
+    /* Theme button sparkle */
+    .theme-btn {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .theme-btn::before {
+      content: "";
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      right: -2px;
+      bottom: -2px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.6) 0%, transparent 50%);
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      border-radius: inherit;
+    }
+
+    .theme-btn:hover::before {
+      opacity: 1;
+    }
+
+    /* Topbar brand glow animation */
+    .brand {
+      position: relative;
+    }
+
+    .brand::after {
+      content: "";
+      position: absolute;
+      bottom: -4px;
+      left: 10%;
+      right: 10%;
+      height: 2px;
+      background: linear-gradient(90deg, 
+        transparent, 
+        rgba(var(--accent-rgb), 0.6), 
+        transparent);
+      border-radius: 999px;
+      animation: brandGlow 3s ease-in-out infinite;
+    }
+
+    @keyframes brandGlow {
+      0%, 100% { opacity: 0.3; transform: scaleX(0.6); }
+      50% { opacity: 1; transform: scaleX(1); }
+    }
+
+    /* Floating ambient particles */
+    .orb.c {
+      width: 180px;
+      height: 180px;
+      left: 50%;
+      top: 40%;
+      background: radial-gradient(circle, rgba(var(--accent-rgb), 0.1) 0%, transparent 70%);
+      animation: float 14s ease-in-out infinite;
+      animation-delay: -7s;
+    }
+
+    /* Smooth page transition for chart screen */
+    .chart-screen {
+      animation: pageEnter 0.4s cubic-bezier(.22,.68,.36,1.2);
+    }
+
+    @keyframes pageEnter {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Chart screen card staggered entrance */
+    .chart-screen .glass.card:nth-child(1) { animation: fadeInUp 0.35s ease both; animation-delay: 0.05s; }
+    .chart-screen .glass.card:nth-child(2) { animation: fadeInUp 0.35s ease both; animation-delay: 0.1s; }
+    .chart-screen .glass.card:nth-child(3) { animation: fadeInUp 0.35s ease both; animation-delay: 0.15s; }
+    .chart-screen .glass.card:nth-child(4) { animation: fadeInUp 0.35s ease both; animation-delay: 0.2s; }
+
+    /* Chart chip badge pulse for status */
+    .chart-chip {
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .chart-chip:hover {
+      transform: scale(1.1);
+      box-shadow: 0 2px 8px rgba(var(--accent-rgb), 0.2);
+    }
+
+    /* Archive section reveal animation */
+    #archiveSection {
+      animation: archiveReveal 0.4s ease;
+    }
+
+    @keyframes archiveReveal {
+      from {
+        opacity: 0;
+        max-height: 0;
+        transform: translateY(-8px);
+      }
+      to {
+        opacity: 1;
+        max-height: 600px;
+        transform: translateY(0);
+      }
+    }
+
+    /* Calendar card month switch animation */
+    .calendar-head .month-label {
+      transition: all 0.2s ease;
+    }
+
+    .calendar-head .icon-btn:active + .month-label,
+    .calendar-head .month-label:hover {
+      color: var(--accent);
+    }
+
+    /* Swipe hint enhanced animation */
+    .swipe-hint {
+      animation: swipeHintFloat 3s ease-in-out infinite;
+    }
+
+    @keyframes swipeHintFloat {
+      0%, 100% { opacity: .4; transform: translateY(0); }
+      30% { opacity: .8; transform: translateY(-2px); }
+      60% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Mini canvas hover glow */
+    .mini-canvas {
+      transition: box-shadow .3s ease, transform .3s ease;
+    }
+
+    .chart-item:hover .mini-canvas {
+      box-shadow: 0 4px 16px rgba(var(--accent-rgb), 0.15);
+      transform: scale(1.02);
+    }
+
+    /* Auth screen entrance */
+    .auth-card {
+      animation: authEnter 0.6s cubic-bezier(.22,.68,.36,1.2);
+    }
+
+    @keyframes authEnter {
+      from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    /* Auth button hover glow */
+    .auth-btn {
+      transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
+    }
+
+    .auth-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(0,0,0,0.15);
+      filter: brightness(1.1);
+    }
+
+    .auth-btn:active {
+      transform: scale(0.98);
+    }
+
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(var(--accent-rgb), 0.25);
+      border-radius: 999px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(var(--accent-rgb), 0.45);
+    }
+
+    /* Selection color */
+    ::selection {
+      background: rgba(var(--accent-rgb), 0.25);
+      color: var(--accent-deep);
+    }
+
+    /* Smooth body transitions for theme changes */
+    body {
+      transition: background-color 0.5s ease;
+    }
+
+    /* Number input spin button styling */
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      opacity: 0.5;
+    }
+
+    input[type="number"]:focus::-webkit-inner-spin-button,
+    input[type="number"]:focus::-webkit-outer-spin-button {
+      opacity: 1;
+    }
   </style>
 </head>
 
 <body>
   <div class="orb a"></div>
   <div class="orb b"></div>
+  <div class="orb c"></div>
 
   <div id="authScreen" class="auth-screen">
     <div class="glass auth-card">
