@@ -1521,10 +1521,9 @@
       if (!chart || !chart.records) return false;
       const now = todayKey();
       const startKey = toDateInputValue(getChartStart(chart));
-      const endKey = toDateInputValue(getChartEnd(chart));
       let changed = false;
       Object.keys(chart.records).forEach((key) => {
-        if (key > now || key < startKey || key > endKey) {
+        if (key > now || key < startKey) {
           delete chart.records[key];
           changed = true;
         }
@@ -1537,11 +1536,10 @@
       let done = 0;
       const history = [];
       const startKey = toDateInputValue(getChartStart(chart));
-      const endKey = toDateInputValue(getChartEnd(chart));
       const nowKey = todayKey();
 
       keys.forEach((key) => {
-        if (key < startKey || key > endKey || key > nowKey) return;
+        if (key < startKey || key > nowKey) return;
         done += Number(chart.records[key]?.amount || 0);
         if (done > chart.total) done = chart.total;
         history.push({ date: key, remaining: Math.max(0, chart.total - done) });
@@ -1777,10 +1775,10 @@
       const chartStart = getChartStart(currentChart);
       const chartEnd = getChartEnd(currentChart);
       const restoredSelected = options.selectedDate ? normalizeDay(options.selectedDate) : null;
-      const inRangeSelected = restoredSelected && restoredSelected >= chartStart && restoredSelected <= chartEnd;
+      const inRangeSelected = restoredSelected && restoredSelected >= chartStart && restoredSelected <= today;
       selectedDate = inRangeSelected
         ? restoredSelected
-        : (today < chartStart ? chartStart : (today > chartEnd ? chartEnd : today));
+        : (today < chartStart ? chartStart : today);
       const restoredCalendar = options.calendarBase ? normalizeDay(options.calendarBase) : null;
       calendarBase = restoredCalendar
         ? new Date(restoredCalendar.getFullYear(), restoredCalendar.getMonth(), 1)
