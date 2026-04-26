@@ -594,6 +594,12 @@
       cursor: not-allowed;
     }
 
+    .day-btn.extended {
+      background: rgba(var(--accent-rgb), 0.08);
+      color: var(--accent);
+      border: 1px dashed rgba(var(--accent-rgb), 0.4);
+    }
+
     .record-line {
       margin-top: 8px;
       border-top: 1px solid var(--line);
@@ -1793,14 +1799,31 @@
       const remain = Math.max(0, currentChart.total - done);
       const deadline = getChartEnd(currentChart);
       const today = normalizeDay(new Date());
+      const isExtended = today > deadline;
       const daysLeft = Math.max(0, dayDiff(deadline, today) + 1);
       const daily = daysLeft > 0 ? Math.ceil(remain / daysLeft) : remain;
       const progress = currentChart.total ? Math.round((done / currentChart.total) * 100) : 0;
 
       document.getElementById('graphInfo').textContent = `${currentChart.total}${currentChart.unit} / 残り ${remain}${currentChart.unit}`;
-      document.getElementById('dailyNeed').textContent = daily;
-      document.getElementById('dailyUnit').textContent = currentChart.unit;
-      document.getElementById('remainText').textContent = `あと${daysLeft}日 ・ 残り${remain}${currentChart.unit}`;
+      
+      const dailyNeedEl = document.getElementById('dailyNeed');
+      const dailyUnitEl = document.getElementById('dailyUnit');
+      const remainTextEl = document.getElementById('remainText');
+      
+      if (isExtended && remain > 0) {
+        dailyNeedEl.textContent = '延長';
+        dailyNeedEl.style.fontSize = '24px';
+        dailyUnitEl.textContent = '中';
+        remainTextEl.textContent = `期日オーバー ・ 残り${remain}${currentChart.unit}`;
+        remainTextEl.style.color = '#e74c3c';
+      } else {
+        dailyNeedEl.textContent = daily;
+        dailyNeedEl.style.fontSize = '';
+        dailyUnitEl.textContent = currentChart.unit;
+        remainTextEl.textContent = `あと${daysLeft}日 ・ 残り${remain}${currentChart.unit}`;
+        remainTextEl.style.color = '';
+      }
+
       document.getElementById('progressValue').textContent = `${progress}%`;
       document.getElementById('progressSub').textContent = `${done}/${currentChart.total}${currentChart.unit}`;
       document.getElementById('recordUnit').textContent = currentChart.unit;
@@ -1827,8 +1850,10 @@
       const gw = w - p * 2;
       const gh = h - p * 2;
       const startDate = getChartStart(chart);
-      const endDate = getChartEnd(chart);
-      const spanDays = Math.max(1, Math.ceil((endDate - startDate) / 86400000));
+      const originalEndDate = getChartEnd(chart);
+      const today = normalizeDay(new Date());
+      const displayEndDate = today > originalEndDate ? today : originalEndDate;
+      const spanDays = Math.max(1, Math.ceil((displayEndDate - startDate) / 86400000));
 
       // theme-adaptive colors
       const cs = getComputedStyle(document.documentElement);
@@ -1851,15 +1876,40 @@
       ctx.lineWidth = 1.5;
       ctx.beginPath();
       ctx.moveTo(p, p);
-      ctx.lineTo(w - p, h - p);
+      
+      const originalSpanDays = Math.max(1, Math.ceil((originalEndDate - startDate) / 86400000));
+      if (today > originalEndDate) {
+        const originalEndX = p + (gw * (originalSpanDays / spanDays));
+        ctx.lineTo(originalEndX, h - p);
+      } else {
+        ctx.lineTo(w - p, h - p);
+      }
       ctx.stroke();
       ctx.setLineDash([]);
+      
+      if (today > originalEndDate) {
+        const originalEndX = p + (gw * (originalSpanDays / spanDays));
+        ctx.setLineDash([4, 4]);
+        ctx.strokeStyle = `rgba(235, 77, 75, 0.4)`;
+        ctx.beginPath();
+        ctx.moveTo(originalEndX, p);
+        ctx.lineTo(originalEndX, h - p);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        
+        ctx.fillStyle = `rgba(235, 77, 75, 0.05)`;
+        ctx.fillRect(originalEndX, p, (w - p) - originalEndX, gh);
+        
+        ctx.fillStyle = `rgba(235, 77, 75, 0.8)`;
+        ctx.font = '10px sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText('延長', w - p - 4, p + 12);
+      }
 
       // actual line (day boundary rendering to avoid 90° kink)
       {
         const accentRgb = accentRgbVal;
         const historyMap = new Map(history.map((point) => [point.date, point.remaining]));
-        const today = normalizeDay(new Date());
         const maxElapsed = Math.max(0, Math.min(spanDays, dayDiff(today, startDate) + 1));
         let remaining = chart.total;
         ctx.strokeStyle = `rgba(${accentRgb}, 0.95)`;
@@ -1920,15 +1970,18 @@
         const isFuture = normalizeDay(d) > today;
         const chartStart = getChartStart(currentChart);
         const chartEnd = getChartEnd(currentChart);
-        const isOutOfRange = normalizeDay(d) < chartStart || normalizeDay(d) > chartEnd;
+        
+        const isBeforeStart = normalizeDay(d) < chartStart;
+        const isPastEnd = normalizeDay(d) > chartEnd;
 
         const btn = document.createElement('button');
         btn.className = 'day-btn';
         if (d.getMonth() !== calendarBase.getMonth()) btn.classList.add('other');
-        if (isFuture || isOutOfRange) btn.classList.add('future');
+        if (isFuture || isBeforeStart) btn.classList.add('future');
+        if (isPastEnd && !isFuture && !isBeforeStart) btn.classList.add('extended');
         if (formatKey(d) === formatKey(selectedDate)) btn.classList.add('active');
         btn.textContent = d.getDate();
-        btn.disabled = isFuture || isOutOfRange;
+        btn.disabled = isFuture || isBeforeStart;
 
         btn.onclick = () => {
           selectedDate = d;
